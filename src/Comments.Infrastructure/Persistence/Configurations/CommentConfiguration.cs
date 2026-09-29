@@ -28,6 +28,6 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         b.HasIndex(x => new { x.ParentId, x.CreatedAt });
 
         // главная страница: только заглавные комментарии, сортировка по дате
-        b.HasIndex(x => x.CreatedAt).HasFilter("\"ParentId\" IS NULL");
+        b.HasIndex(x => x.CreatedAt).HasFilter("[ParentId] IS NULL");
     }
 }

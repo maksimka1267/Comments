@@ -14,7 +14,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(x => x.Email).IsRequired().HasMaxLength(254);
         b.Property(x => x.HomePage).HasMaxLength(2048);
 
-        b.HasIndex(x => new { x.UserName, x.Email }).IsUnique(); // поиск/создание пользователя, сортировка по имени
-        b.HasIndex(x => x.Email);                                 // сортировка по e-mail
+        // поиск/создание пользователя; у SQL Server коллация по умолчанию
+        // нечувствительна к регистру, поэтому "Anna" и "anna" - один пользователь
+        b.HasIndex(x => new { x.UserName, x.Email }).IsUnique();
+        b.HasIndex(x => x.Email); // сортировка по e-mail
     }
 }
