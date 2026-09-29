@@ -4,7 +4,7 @@ public class Comment
 {
     private Comment() { } // для EF Core
 
-    public Comment(User user, string text, string ipAddress, string userAgent, long? parentId = null)
+    public Comment(User user, string text, string ipAddress, string userAgent, Guid? parentId = null)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
