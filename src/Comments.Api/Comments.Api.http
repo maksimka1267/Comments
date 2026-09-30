@@ -1,6 +1,35 @@
-@Comments.Api_HostAddress = http://localhost:5047
+@host = http://localhost:5047
 
-GET {{Comments.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Валидный комментарий
+POST {{host}}/api/comments
+Content-Type: application/json
 
-###
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "homePage": "https://example.com",
+  "text": "Привет <strong>мир</strong> <script>alert(1)</script>",
+  "parentId": null
+}
+
+### Незакрытый тег (ожидаем 400)
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "text": "<i>без закрытия",
+  "parentId": null
+}
+
+### Несуществующий родитель (ожидаем 404)
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "text": "ответ в никуда",
+  "parentId": "00000000-0000-0000-0000-000000000001"
+}
