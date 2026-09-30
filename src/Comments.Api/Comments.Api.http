@@ -33,3 +33,11 @@ Content-Type: application/json
   "text": "ответ в никуда",
   "parentId": "00000000-0000-0000-0000-000000000001"
 }
+### По умолчанию: новые сверху, страница 1
+GET {{host}}/api/comments
+
+### Сортировка по имени, по возрастанию, страница 2
+GET {{host}}/api/comments?sortBy=userName&sortDir=asc&page=2
+
+### Ошибка (ожидаем 400)
+GET {{host}}/api/comments?page=0

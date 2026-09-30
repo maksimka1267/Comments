@@ -8,7 +8,8 @@ namespace Comments.Api.Services;
 
 public sealed class CommentQueryService(AppDbContext db) : ICommentQueryService
 {
-    public async Task<List<CommentDto>> GetTopLevelAsync(GetCommentsQuery query, CancellationToken ct)
+    public const int PageSize = 25;
+    public async Task<PagedResult<CommentDto>> GetTopLevelAsync(GetCommentsQuery query, CancellationToken ct)
     {
         var comments = db.Comments.AsNoTracking().Where(c => c.ParentId == null);
 
@@ -23,9 +24,15 @@ public sealed class CommentQueryService(AppDbContext db) : ICommentQueryService
             _ => comments.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id)
         };
 
-        return await ordered
+        var total = await comments.CountAsync(ct);
+
+        var items = await ordered
+            .Skip((query.Page - 1) * PageSize)
+            .Take(PageSize)
             .Select(c => new CommentDto(
                 c.Id, c.ParentId, c.User.UserName, c.User.Email, c.User.HomePage, c.Text, c.CreatedAt))
             .ToListAsync(ct);
+
+        return new PagedResult<CommentDto>(items, query.Page, PageSize, total);
     }
 }
