@@ -23,6 +23,8 @@ public static class DependencyInjection
         services.AddSingleton<CaptchaImageRenderer>();
         services.AddSingleton<ICaptchaService, CaptchaService>();
         services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
+        services.AddSingleton<ITextFileProcessor, TextFileProcessor>();
 
         return services;
     }
