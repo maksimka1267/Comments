@@ -121,4 +121,17 @@ public class CommentQueryServiceTests
 
         Assert.Null(dto);
     }
+    [Fact]
+    public async Task Attachment_is_included_in_comment()
+    {
+        using var db = CreateDb();
+        var comment = Add(db, "alice", DateTime.UtcNow);
+        comment.AttachFile(new Attachment(AttachmentKind.Text, "notes.txt", "x.txt", "text/plain", 10));
+        db.SaveChanges();
+
+        var dto = await new CommentQueryService(db).GetByIdAsync(comment.Id, default);
+
+        Assert.Equal("notes.txt", dto!.Attachment!.FileName);
+        Assert.Equal(AttachmentKind.Text, dto.Attachment.Kind);
+    }
 }

@@ -13,8 +13,13 @@ public sealed class CommentQueryService(AppDbContext db) : ICommentQueryService
     public const int PageSize = 25;
 
     private static readonly Expression<Func<Comment, CommentDto>> ToDto = c =>
-        new CommentDto(c.Id, c.ParentId, c.User.UserName, c.User.Email, c.User.HomePage, c.Text, c.CreatedAt);
-
+    new CommentDto(
+        c.Id, c.ParentId, c.User.UserName, c.User.Email, c.User.HomePage, c.Text, c.CreatedAt,
+        c.Attachment == null
+            ? null
+            : new AttachmentDto(
+                c.Attachment.Id, c.Attachment.Kind, c.Attachment.OriginalFileName,
+                c.Attachment.ContentType, c.Attachment.SizeBytes));
     public async Task<PagedResult<CommentDto>> GetTopLevelAsync(GetCommentsQuery query, CancellationToken ct)
     {
         var comments = db.Comments.AsNoTracking().Where(c => c.ParentId == null);

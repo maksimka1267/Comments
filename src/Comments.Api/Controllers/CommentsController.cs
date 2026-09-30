@@ -1,5 +1,6 @@
 ﻿using Comments.Api.Contracts;
 using Comments.Api.Services;
+using Comments.Infrastructure.Files;
 
 using FluentValidation;
 
@@ -15,13 +16,17 @@ public sealed class CommentsController(
     IValidator<CreateCommentRequest> validator) : ControllerBase
 
 {
+    private const int MaxRequestBytes = 6 * 1024 * 1024;
+    private const int MaxImageBytes = 5 * 1024 * 1024;
+
     [HttpGet]
     public async Task<ActionResult<List<CommentDto>>> GetTopLevel(
         [FromQuery] GetCommentsQuery query, CancellationToken ct) =>
         Ok(await queries.GetTopLevelAsync(query, ct));
 
-    [HttpPost]
-    public async Task<IActionResult> Create(CreateCommentRequest request, CancellationToken ct)
+    [RequestSizeLimit(MaxRequestBytes)]
+    public async Task<IActionResult> Create(
+    [FromForm] CreateCommentRequest request, IFormFile? file, CancellationToken ct)
     {
         var validation = await validator.ValidateAsync(request, ct);
         if (!validation.IsValid)
@@ -31,11 +36,28 @@ public sealed class CommentsController(
             return ValidationProblem(ModelState);
         }
 
+        UploadedFile? upload = null;
+        if (file is { Length: > 0 })
+        {
+            // размер проверяем до чтения в память
+            var isText = Path.GetExtension(file.FileName).Equals(".txt", StringComparison.OrdinalIgnoreCase);
+            var limit = isText ? TextFileProcessor.MaxBytes : MaxImageBytes;
+            if (file.Length > limit)
+            {
+                ModelState.AddModelError("file", $"File must not exceed {limit / 1024} KB.");
+                return ValidationProblem(ModelState);
+            }
+
+            using var buffer = new MemoryStream((int)file.Length);
+            await file.CopyToAsync(buffer, ct);
+            upload = new UploadedFile(file.FileName, buffer.ToArray());
+        }
+
         var client = new ClientInfo(
             HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             Request.Headers.UserAgent.ToString());
 
-        var result = await service.CreateAsync(request, client, ct);
+        var result = await service.CreateAsync(request, upload, client, ct);
 
         switch (result.Status)
         {
@@ -48,6 +70,11 @@ public sealed class CommentsController(
             case CreateCommentStatus.InvalidCaptcha:
                 ModelState.AddModelError(nameof(request.CaptchaAnswer), "Wrong or expired CAPTCHA.");
                 return ValidationProblem(ModelState);
+
+            case CreateCommentStatus.InvalidFile:
+                ModelState.AddModelError("file", result.Error!);
+                return ValidationProblem(ModelState);
+
             default:
                 ModelState.AddModelError(nameof(request.Text), "Text is empty after removing disallowed markup.");
                 return ValidationProblem(ModelState);

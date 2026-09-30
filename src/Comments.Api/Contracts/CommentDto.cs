@@ -7,7 +7,8 @@ public sealed record CommentDto(
     string Email,
     string? HomePage,
     string Text,
-    DateTime CreatedAt)
+    DateTime CreatedAt,
+    AttachmentDto? Attachment)
 {
     public List<CommentDto> Replies { get; init; } = [];
 }

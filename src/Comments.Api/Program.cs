@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 using Comments.Api.Services;
 using Comments.Api.Validators;
 using Comments.Infrastructure;
@@ -8,7 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Default")!);
