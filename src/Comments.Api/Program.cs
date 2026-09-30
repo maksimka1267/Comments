@@ -13,6 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("Default")!);
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCommentRequestValidator>();
+builder.Services.AddScoped<ICommentQueryService, CommentQueryService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 var app = builder.Build();
 

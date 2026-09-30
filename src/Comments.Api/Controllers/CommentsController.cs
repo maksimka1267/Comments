@@ -11,8 +11,15 @@ namespace Comments.Api.Controllers;
 [Route("api/comments")]
 public sealed class CommentsController(
     ICommentService service,
+    ICommentQueryService queries,
     IValidator<CreateCommentRequest> validator) : ControllerBase
+
 {
+    [HttpGet]
+    public async Task<ActionResult<List<CommentDto>>> GetTopLevel(
+        [FromQuery] GetCommentsQuery query, CancellationToken ct) =>
+        Ok(await queries.GetTopLevelAsync(query, ct));
+
     [HttpPost]
     public async Task<IActionResult> Create(CreateCommentRequest request, CancellationToken ct)
     {
