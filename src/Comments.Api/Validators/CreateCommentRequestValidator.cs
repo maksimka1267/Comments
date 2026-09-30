@@ -36,6 +36,13 @@ public sealed class CreateCommentRequestValidator : AbstractValidator<CreateComm
                 if (!result.IsValid)
                     context.AddFailure(result.Error!);
             });
+        RuleFor(x => x.CaptchaId).NotEmpty();
+
+        RuleFor(x => x.CaptchaAnswer)
+            .NotEmpty()
+            .MaximumLength(10)
+            .Matches("^[A-Za-z0-9]+$")
+            .WithMessage("CAPTCHA may contain only Latin letters and digits.");
     }
 
     private static bool BeHttpUrl(string? value) =>

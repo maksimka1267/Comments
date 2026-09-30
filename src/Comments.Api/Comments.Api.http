@@ -58,3 +58,18 @@ GET {{host}}/api/comments/068ad371-d55a-48ce-6141-08df1f346040
 
 ### Список: у заглавных комментариев заполнено поле replies
 GET {{host}}/api/comments
+### 1. Получить капчу
+GET {{host}}/api/captcha
+
+### 2. Создать комментарий (подставь id из шага 1 и текст с картинки)
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "text": "Комментарий с капчей",
+  "parentId": null,
+  "captchaId": "00b45f5c-4f94-4c29-ac0d-1d80300f79a8",
+  "captchaAnswer": chunked
+}

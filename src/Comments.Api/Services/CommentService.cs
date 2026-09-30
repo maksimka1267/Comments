@@ -7,13 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Comments.Api.Services;
 
-public sealed class CommentService(AppDbContext db, IMessageSanitizer sanitizer) : ICommentService
+public sealed class CommentService(
+    AppDbContext db,
+    IMessageSanitizer sanitizer,
+    ICaptchaService captcha) : ICommentService
 {
     private const int MaxUserAgentLength = 512;
 
     public async Task<CreateCommentResult> CreateAsync(
         CreateCommentRequest request, ClientInfo client, CancellationToken ct)
     {
+        if (!await captcha.VerifyAsync(request.CaptchaId, request.CaptchaAnswer, ct))
+            return new CreateCommentResult(CreateCommentStatus.InvalidCaptcha);
+
         if (request.ParentId is { } parentId &&
             !await db.Comments.AnyAsync(c => c.Id == parentId, ct))
             return new CreateCommentResult(CreateCommentStatus.ParentNotFound);

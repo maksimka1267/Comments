@@ -45,6 +45,9 @@ public sealed class CommentsController(
             case CreateCommentStatus.ParentNotFound:
                 return NotFound(new ProblemDetails { Title = "Parent comment not found." });
 
+            case CreateCommentStatus.InvalidCaptcha:
+                ModelState.AddModelError(nameof(request.CaptchaAnswer), "Wrong or expired CAPTCHA.");
+                return ValidationProblem(ModelState);
             default:
                 ModelState.AddModelError(nameof(request.Text), "Text is empty after removing disallowed markup.");
                 return ValidationProblem(ModelState);

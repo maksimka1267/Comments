@@ -1,4 +1,5 @@
 ﻿using Comments.Domain.Abstractions;
+using Comments.Infrastructure.Captcha;
 using Comments.Infrastructure.Persistence;
 using Comments.Infrastructure.Text;
 
@@ -15,7 +16,11 @@ public static class DependencyInjection
 
         services.AddSingleton<IMarkupValidator, XhtmlMarkupValidator>();
         services.AddScoped<IMessageSanitizer, HtmlMessageSanitizer>();
-
+        services.AddMemoryCache();
+        services.AddSingleton<ICaptchaStore, MemoryCaptchaStore>();
+        services.AddSingleton<ICaptchaCodeGenerator, RandomCaptchaCodeGenerator>();
+        services.AddSingleton<CaptchaImageRenderer>();
+        services.AddSingleton<ICaptchaService, CaptchaService>();
         return services;
     }
 }

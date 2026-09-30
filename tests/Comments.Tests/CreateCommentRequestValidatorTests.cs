@@ -9,7 +9,18 @@ public class CreateCommentRequestValidatorTests
     private readonly CreateCommentRequestValidator _sut = new(new XhtmlMarkupValidator());
 
     private static CreateCommentRequest Valid() =>
-        new("User123", "user@example.com", null, "Hello <i>world</i>", null);
+    new("User123", "user@example.com", null, "Hello <i>world</i>", null, Guid.NewGuid(), "AB3CD");
+
+    [Fact]
+    public void Empty_captcha_id_fails() =>
+        Assert.False(_sut.Validate(Valid() with { CaptchaId = Guid.Empty }).IsValid);
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("ab cd")]
+    [InlineData("капча")]
+    public void Invalid_captcha_answer_fails(string answer) =>
+        Assert.False(_sut.Validate(Valid() with { CaptchaAnswer = answer }).IsValid);
 
     [Fact]
     public void Valid_request_passes() =>
