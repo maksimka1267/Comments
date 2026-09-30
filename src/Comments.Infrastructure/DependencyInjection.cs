@@ -1,5 +1,6 @@
 ﻿using Comments.Domain.Abstractions;
 using Comments.Infrastructure.Captcha;
+using Comments.Infrastructure.Files;
 using Comments.Infrastructure.Persistence;
 using Comments.Infrastructure.Text;
 
@@ -21,6 +22,8 @@ public static class DependencyInjection
         services.AddSingleton<ICaptchaCodeGenerator, RandomCaptchaCodeGenerator>();
         services.AddSingleton<CaptchaImageRenderer>();
         services.AddSingleton<ICaptchaService, CaptchaService>();
+        services.AddSingleton<IFileStorage, LocalFileStorage>();
+
         return services;
     }
 }
