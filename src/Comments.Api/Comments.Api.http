@@ -41,3 +41,20 @@ GET {{host}}/api/comments?sortBy=userName&sortDir=asc&page=2
 
 ### Ошибка (ожидаем 400)
 GET {{host}}/api/comments?page=0
+
+### Ответ на комментарий
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Bob",
+  "email": "bob@example.com",
+  "text": "Согласен, <i>отличная мысль</i>",
+  "parentId": "068ad371-d55a-48ce-6141-08df1f346040"
+}
+
+### Комментарий со всей веткой
+GET {{host}}/api/comments/068ad371-d55a-48ce-6141-08df1f346040
+
+### Список: у заглавных комментариев заполнено поле replies
+GET {{host}}/api/comments

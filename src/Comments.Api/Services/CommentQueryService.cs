@@ -1,4 +1,6 @@
-﻿using Comments.Api.Contracts;
+﻿using System.Linq.Expressions;
+
+using Comments.Api.Contracts;
 using Comments.Domain.Entities;
 using Comments.Infrastructure.Persistence;
 
@@ -9,6 +11,10 @@ namespace Comments.Api.Services;
 public sealed class CommentQueryService(AppDbContext db) : ICommentQueryService
 {
     public const int PageSize = 25;
+
+    private static readonly Expression<Func<Comment, CommentDto>> ToDto = c =>
+        new CommentDto(c.Id, c.ParentId, c.User.UserName, c.User.Email, c.User.HomePage, c.Text, c.CreatedAt);
+
     public async Task<PagedResult<CommentDto>> GetTopLevelAsync(GetCommentsQuery query, CancellationToken ct)
     {
         var comments = db.Comments.AsNoTracking().Where(c => c.ParentId == null);
@@ -29,10 +35,48 @@ public sealed class CommentQueryService(AppDbContext db) : ICommentQueryService
         var items = await ordered
             .Skip((query.Page - 1) * PageSize)
             .Take(PageSize)
-            .Select(c => new CommentDto(
-                c.Id, c.ParentId, c.User.UserName, c.User.Email, c.User.HomePage, c.Text, c.CreatedAt))
+            .Select(ToDto)
             .ToListAsync(ct);
 
+        await AttachRepliesAsync(items, ct);
+
         return new PagedResult<CommentDto>(items, query.Page, PageSize, total);
+    }
+
+    public async Task<CommentDto?> GetByIdAsync(Guid id, CancellationToken ct)
+    {
+        var root = await db.Comments.AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(ToDto)
+            .FirstOrDefaultAsync(ct);
+
+        if (root is null)
+            return null;
+
+        await AttachRepliesAsync([root], ct);
+        return root;
+    }
+
+    /// <summary>Загружает всех потомков переданных комментариев и собирает из них дерево.</summary>
+    private async Task AttachRepliesAsync(List<CommentDto> roots, CancellationToken ct)
+    {
+        var descendants = new List<CommentDto>();
+        var frontier = roots.Select(r => r.Id).ToList();
+
+        while (frontier.Count > 0)
+        {
+            var level = await db.Comments.AsNoTracking()
+                .Where(c => c.ParentId != null && frontier.Contains(c.ParentId.Value))
+                .OrderBy(c => c.CreatedAt).ThenBy(c => c.Id)   // ответы в хронологическом порядке
+                .Select(ToDto)
+                .ToListAsync(ct);
+
+            descendants.AddRange(level);
+            frontier = level.Select(c => c.Id).ToList();
+        }
+
+        var byParent = descendants.ToLookup(c => c.ParentId!.Value);
+        foreach (var comment in roots.Concat(descendants))
+            comment.Replies.AddRange(byParent[comment.Id]);
     }
 }

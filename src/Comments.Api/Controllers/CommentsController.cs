@@ -40,7 +40,7 @@ public sealed class CommentsController(
         switch (result.Status)
         {
             case CreateCommentStatus.Created:
-                return StatusCode(StatusCodes.Status201Created, result.Comment);
+                return CreatedAtAction(nameof(GetById), new { id = result.Comment!.Id }, result.Comment);
 
             case CreateCommentStatus.ParentNotFound:
                 return NotFound(new ProblemDetails { Title = "Parent comment not found." });
@@ -49,5 +49,11 @@ public sealed class CommentsController(
                 ModelState.AddModelError(nameof(request.Text), "Text is empty after removing disallowed markup.");
                 return ValidationProblem(ModelState);
         }
+    }
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<CommentDto>> GetById(Guid id, CancellationToken ct)
+    {
+        var comment = await queries.GetByIdAsync(id, ct);
+        return comment is null ? NotFound() : Ok(comment);
     }
 }

@@ -5,4 +5,5 @@ namespace Comments.Api.Services;
 public interface ICommentQueryService
 {
     Task<PagedResult<CommentDto>> GetTopLevelAsync(GetCommentsQuery query, CancellationToken ct);
+    Task<CommentDto?> GetByIdAsync(Guid id, CancellationToken ct);
 }

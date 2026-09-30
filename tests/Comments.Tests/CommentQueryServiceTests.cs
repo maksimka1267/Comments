@@ -81,4 +81,44 @@ public class CommentQueryServiceTests
         Assert.Equal(30, page1.TotalCount);
         Assert.Equal(2, page1.TotalPages);
     }
+    [Fact]
+    public async Task Replies_are_returned_as_a_tree()
+    {
+        using var db = CreateDb();
+        var root = Add(db, "alice", DateTime.UtcNow);
+        var reply = Add(db, "bob", DateTime.UtcNow, root.Id);
+        Add(db, "carol", DateTime.UtcNow, reply.Id);
+
+        var result = await new CommentQueryService(db).GetTopLevelAsync(new GetCommentsQuery(), default);
+
+        var top = Assert.Single(result.Items);
+        var level1 = Assert.Single(top.Replies);
+        Assert.Equal("bob", level1.UserName);
+        var level2 = Assert.Single(level1.Replies);
+        Assert.Equal("carol", level2.UserName);
+    }
+
+    [Fact]
+    public async Task Replies_are_in_chronological_order()
+    {
+        using var db = CreateDb();
+        var t = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var root = Add(db, "alice", t);
+        Add(db, "second", t.AddMinutes(2), root.Id);
+        Add(db, "first", t.AddMinutes(1), root.Id);
+
+        var dto = await new CommentQueryService(db).GetByIdAsync(root.Id, default);
+
+        Assert.Equal(["first", "second"], dto!.Replies.Select(r => r.UserName));
+    }
+
+    [Fact]
+    public async Task GetById_returns_null_for_unknown_comment()
+    {
+        using var db = CreateDb();
+
+        var dto = await new CommentQueryService(db).GetByIdAsync(Guid.NewGuid(), default);
+
+        Assert.Null(dto);
+    }
 }
