@@ -18,6 +18,8 @@ builder.Services.AddInfrastructure(builder.Configuration.GetConnectionString("De
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCommentRequestValidator>();
 builder.Services.AddScoped<ICommentQueryService, CommentQueryService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
+builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
