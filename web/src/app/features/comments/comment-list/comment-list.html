@@ -1,0 +1,30 @@
+<table class="comments">
+  <thead>
+    <tr>
+      <th><button type="button" data-sort="userName" (click)="sort('userName')">User Name {{ indicator('userName') }}</button></th>
+      <th><button type="button" data-sort="email" (click)="sort('email')">E-mail {{ indicator('email') }}</button></th>
+      <th><button type="button" data-sort="date" (click)="sort('date')">Дата {{ indicator('date') }}</button></th>
+      <th>Комментарий</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (comment of comments(); track comment.id) {
+    <tr>
+      <td>{{ comment.userName }}</td>
+      <td>{{ comment.email }}</td>
+      <td>{{ comment.createdAt | date: 'dd.MM.yy в HH:mm' }}</td>
+      <td [innerHTML]="comment.text"></td>
+    </tr>
+    } @empty {
+    <tr>
+      <td colspan="4">
+        @if (loading()) { Загрузка… } @else { Пока нет комментариев }
+      </td>
+    </tr>
+    }
+  </tbody>
+</table>
+
+@if (error(); as message) {
+<p class="error" role="alert">{{ message }}</p>
+}
