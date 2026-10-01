@@ -26,9 +26,7 @@ public static class DependencyInjection
         services.AddSingleton<IMarkupValidator, XhtmlMarkupValidator>();
         services.AddScoped<IMessageSanitizer, HtmlMessageSanitizer>();
 
-        services.AddMemoryCache();
-
-        services.AddSingleton<ICaptchaStore, MemoryCaptchaStore>();
+        services.AddSingleton<ICaptchaStore, RedisCaptchaStore>();
         services.AddSingleton<ICaptchaCodeGenerator, RandomCaptchaCodeGenerator>();
         services.AddSingleton<CaptchaImageRenderer>();
         services.AddSingleton<ICaptchaService, CaptchaService>();
