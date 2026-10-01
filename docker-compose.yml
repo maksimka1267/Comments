@@ -15,6 +15,18 @@
       retries: 10
       start_period: 20s
 
+  redis:
+    image: redis:7-alpine
+    # volatile-lru вытесняет только ключи с TTL (капчи, кэш); счётчики версий кэша без TTL не трогает
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "volatile-lru", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"   # для разработки, на сервере можно убрать
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   api:
     build:
       context: .
@@ -23,11 +35,14 @@
       ASPNETCORE_ENVIRONMENT: Production
       MigrateOnStartup: "true"
       ConnectionStrings__Default: "Server=mssql;Database=Comments;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Comments_Dev123!};TrustServerCertificate=True"
+      ConnectionStrings__Redis: "redis:6379"
       FileStorage__RootPath: /app/uploads
     volumes:
       - uploads:/app/uploads
     depends_on:
       mssql:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   web:

@@ -7,26 +7,45 @@ using Comments.Infrastructure.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using StackExchange.Redis;
+
 namespace Comments.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        string connectionString,
+        string redisConnectionString)
     {
-        services.AddDbContext<AppDbContext>(o => o.UseSqlServer(connectionString));
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(
+                connectionString,
+                sql => sql.EnableRetryOnFailure()));
 
         services.AddSingleton<IMarkupValidator, XhtmlMarkupValidator>();
         services.AddScoped<IMessageSanitizer, HtmlMessageSanitizer>();
+
         services.AddMemoryCache();
+
         services.AddSingleton<ICaptchaStore, MemoryCaptchaStore>();
         services.AddSingleton<ICaptchaCodeGenerator, RandomCaptchaCodeGenerator>();
         services.AddSingleton<CaptchaImageRenderer>();
         services.AddSingleton<ICaptchaService, CaptchaService>();
+
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton<ITextFileProcessor, TextFileProcessor>();
-        services.AddDbContext<AppDbContext>(o =>
-    o.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
+
+        services.AddSingleton<IConnectionMultiplexer>(_ =>
+        {
+            var options = ConfigurationOptions.Parse(redisConnectionString);
+
+            options.AbortOnConnectFail = false;
+
+            return ConnectionMultiplexer.Connect(options);
+        });
+
         return services;
     }
 }
