@@ -7,18 +7,23 @@ describe('CommentList', () => {
   let fixture: ComponentFixture<CommentList>;
   let http: HttpTestingController;
 
-  const emptyPage = { items: [], page: 1, pageSize: 25, totalCount: 0, totalPages: 0 };
-
   // ловит ближайший запрос списка, проверяет параметры и отвечает пустой страницей
-  function expectList(sortBy: string, sortDir: string): void {
+  function expectList(sortBy: string, sortDir: string, page = 1, totalPages = 0): void {
     const req = http.expectOne((r) => r.url === '/api/comments');
     expect(req.request.params.get('sortBy')).toBe(sortBy);
     expect(req.request.params.get('sortDir')).toBe(sortDir);
-    req.flush(emptyPage);
+    expect(req.request.params.get('page')).toBe(String(page));
+
+    req.flush({ items: [], page, pageSize: 25, totalCount: totalPages * 25, totalPages });
+    fixture.detectChanges();
   }
 
   function clickSort(field: string): void {
     fixture.nativeElement.querySelector(`[data-sort="${field}"]`).click();
+  }
+
+  function clickPage(target: string): void {
+    fixture.nativeElement.querySelector(`[data-page="${target}"]`).click();
   }
 
   beforeEach(async () => {
@@ -54,5 +59,38 @@ describe('CommentList', () => {
 
     clickSort('date');
     expectList('date', 'desc');
+  });
+
+  it('hides the pager when everything fits on one page', () => {
+    expectList('date', 'desc', 1, 1);
+
+    expect(fixture.nativeElement.querySelector('.pager')).toBeNull();
+  });
+
+  it('requests the chosen page', () => {
+    expectList('date', 'desc', 1, 3);
+
+    clickPage('2');
+    expectList('date', 'desc', 2, 3);
+  });
+
+  it('moves forward and back with the arrow buttons', () => {
+    expectList('date', 'desc', 1, 3);
+
+    clickPage('next');
+    expectList('date', 'desc', 2, 3);
+
+    clickPage('prev');
+    expectList('date', 'desc', 1, 3);
+  });
+
+  it('returns to the first page when sorting changes', () => {
+    expectList('date', 'desc', 1, 3);
+
+    clickPage('3');
+    expectList('date', 'desc', 3, 3);
+
+    clickSort('email');
+    expectList('email', 'asc', 1, 3);
   });
 });

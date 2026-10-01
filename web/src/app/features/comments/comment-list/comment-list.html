@@ -9,22 +9,44 @@
   </thead>
   <tbody>
     @for (comment of comments(); track comment.id) {
-    <tr>
-      <td>{{ comment.userName }}</td>
-      <td>{{ comment.email }}</td>
-      <td>{{ comment.createdAt | date: 'dd.MM.yy в HH:mm' }}</td>
-      <td [innerHTML]="comment.text"></td>
-    </tr>
+      <tr>
+        <td>{{ comment.userName }}</td>
+        <td>{{ comment.email }}</td>
+        <td>{{ comment.createdAt | date: 'dd.MM.yy в HH:mm' }}</td>
+        <td [innerHTML]="comment.text"></td>
+      </tr>
     } @empty {
-    <tr>
-      <td colspan="4">
-        @if (loading()) { Загрузка… } @else { Пока нет комментариев }
-      </td>
-    </tr>
+      <tr>
+        <td colspan="4">
+          @if (loading()) { Загрузка… } @else { Пока нет комментариев }
+        </td>
+      </tr>
     }
   </tbody>
 </table>
 
 @if (error(); as message) {
-<p class="error" role="alert">{{ message }}</p>
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+@if (totalPages() > 1) {
+  <nav class="pager" aria-label="Страницы">
+    <button type="button" data-page="prev" [disabled]="page() === 1 || loading()" (click)="goTo(page() - 1)">‹ Назад</button>
+
+    @for (p of pages(); track p) {
+      <button
+        type="button"
+        [attr.data-page]="p"
+        [class.active]="p === page()"
+        [attr.aria-current]="p === page() ? 'page' : null"
+        [disabled]="loading()"
+        (click)="goTo(p)">
+        {{ p }}
+      </button>
+    }
+
+    <button type="button" data-page="next" [disabled]="page() === totalPages() || loading()" (click)="goTo(page() + 1)">Вперёд ›</button>
+
+    <span class="pager-info">Всего: {{ totalCount() }}</span>
+  </nav>
 }
