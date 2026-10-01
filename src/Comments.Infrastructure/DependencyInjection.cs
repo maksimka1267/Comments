@@ -25,7 +25,8 @@ public static class DependencyInjection
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton<ITextFileProcessor, TextFileProcessor>();
-
+        services.AddDbContext<AppDbContext>(o =>
+    o.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
         return services;
     }
 }
