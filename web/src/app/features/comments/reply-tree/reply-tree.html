@@ -1,0 +1,226 @@
+@for (reply of replies; track reply.id) {
+  <article
+    class="reply"
+    [class.flat]="depth >= maxIndentDepth"
+    [style.--depth]="depth">
+
+    <!-- Reply header -->
+    <header class="reply-header">
+
+      <div class="reply-author">
+        <div class="avatar" aria-hidden="true">
+          {{ avatarFor(reply) }}
+        </div>
+
+        <strong class="author-name">
+          {{ reply.userName }}
+        </strong>
+
+        <time [attr.datetime]="reply.createdAt">
+          {{ reply.createdAt | date: 'dd.MM.yy в HH:mm' }}
+        </time>
+      </div>
+
+      <!-- Actions -->
+      <div class="reply-actions">
+
+        <!-- Link -->
+        <button
+          type="button"
+          aria-label="Ссылка"
+          title="Ссылка">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true">
+
+            <path d="M10 13a5 5 0 0 0 7.07.07l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15" />
+            <path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 7 20l1.15-1.15" />
+
+          </svg>
+        </button>
+
+        <!-- Save -->
+        <button
+          type="button"
+          aria-label="Сохранить"
+          title="Сохранить">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true">
+
+            <path d="M6 4.5A2.5 2.5 0 0 1 8.5 2h7A2.5 2.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z" />
+
+          </svg>
+        </button>
+
+        <!-- Reply -->
+        <button
+          type="button"
+          aria-label="Ответить"
+          title="Ответить"
+          (click)="onReply(reply.id)">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true">
+
+            <path d="M6 4v16" />
+            <path d="M6 7h7a4 4 0 0 1 4 4v5" />
+            <path d="m14 13 3 3 3-3" />
+
+          </svg>
+        </button>
+
+        <!-- Open -->
+        <button
+          type="button"
+          aria-label="Открыть"
+          title="Открыть">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true">
+
+            <circle
+              cx="12"
+              cy="12"
+              r="8.5" />
+
+            <path d="M12 15V9" />
+            <path d="m9.5 11.5 2.5-2.5 2.5 2.5" />
+
+          </svg>
+        </button>
+
+      </div>
+
+      <!-- Votes -->
+      <div class="vote-controls">
+
+        <button
+          type="button"
+          aria-label="Плюс">
+          ↑
+        </button>
+
+        <span>0</span>
+
+        <button
+          type="button"
+          aria-label="Минус">
+          ↓
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- Reply body -->
+    <div class="reply-body">
+
+      <div
+        class="reply-text"
+        [innerHTML]="reply.text">
+      </div>
+
+
+      <!-- Attachment -->
+      @if (reply.attachment; as attachment) {
+
+        <div class="comment-attachment">
+
+          <!-- Image -->
+          @if (attachment.kind === 'Image') {
+
+            <a
+              class="attachment-image-link"
+              [href]="'/api/attachments/' + attachment.id"
+              target="_blank"
+              rel="noopener noreferrer">
+
+              <img
+                class="attachment-image"
+                [src]="'/api/attachments/' + attachment.id"
+                [alt]="attachment.fileName"
+                loading="lazy" />
+
+            </a>
+
+          }
+
+          <!-- Text file -->
+          @else {
+
+            <a
+              class="attachment-file"
+              [href]="'/api/attachments/' + attachment.id"
+              target="_blank"
+              rel="noopener noreferrer">
+
+              <span class="attachment-file-icon">
+                📄
+              </span>
+
+              <span class="attachment-file-info">
+
+                <span class="attachment-file-name">
+                  {{ attachment.fileName }}
+                </span>
+
+                <span class="attachment-file-size">
+                  {{ attachment.sizeBytes / 1024 | number:'1.0-1' }} KB
+                </span>
+
+              </span>
+
+            </a>
+
+          }
+
+        </div>
+
+      }
+
+    </div>
+
+
+    <!--
+      Reply composer for THIS reply.
+
+      If the current reply ID matches replyingTo,
+      the composer is shown directly under this reply.
+    -->
+    @if (replyingTo === reply.id) {
+
+      <app-comment-composer
+        [parentId]="reply.id"
+        (created)="onCreated()"
+        (cancelled)="onCancelled()" />
+
+    }
+
+
+    <!--
+      Nested replies.
+
+      The same replyingTo value is passed recursively,
+      so replying to a reply at any depth works.
+    -->
+    @if (reply.replies.length > 0) {
+
+      <app-reply-tree
+        [replies]="reply.replies"
+        [depth]="depth + 1"
+        [replyingTo]="replyingTo"
+
+        (reply)="onReply($event)"
+        (created)="onCreated()"
+        (cancelled)="onCancelled()" />
+
+    }
+
+  </article>
+}

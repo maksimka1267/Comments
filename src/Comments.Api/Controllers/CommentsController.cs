@@ -24,6 +24,7 @@ public sealed class CommentsController(
         [FromQuery] GetCommentsQuery query, CancellationToken ct) =>
         Ok(await queries.GetTopLevelAsync(query, ct));
 
+    [HttpPost]
     [RequestSizeLimit(MaxRequestBytes)]
     public async Task<IActionResult> Create(
     [FromForm] CreateCommentRequest request, IFormFile? file, CancellationToken ct)

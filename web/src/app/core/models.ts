@@ -28,5 +28,10 @@ export interface PagedResult<T> {
   totalPages: number;
 }
 
+export interface CaptchaResponse {
+  id: string;
+  image: string;
+}
+
 export type SortField = 'date' | 'userName' | 'email';
 export type SortDir = 'asc' | 'desc';

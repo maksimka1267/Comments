@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommentList } from './comment-list';
+import { CommentDto } from '../../../core/models';
 
 describe('CommentList', () => {
   let fixture: ComponentFixture<CommentList>;
@@ -93,4 +94,27 @@ describe('CommentList', () => {
     clickSort('email');
     expectList('email', 'asc', 1, 3);
   });
+  it('shows replies under their top-level comment', () => {
+  const reply = (id: string, userName: string, replies: CommentDto[] = []): CommentDto => ({
+    id,
+    parentId: 'x',
+    userName,
+    email: `${userName}@example.com`,
+    homePage: null,
+    text: `text of ${userName}`,
+    createdAt: '2026-09-30T20:49:52Z',
+    attachment: null,
+    replies,
+  });
+
+  const top = { ...reply('1', 'Anna'), parentId: null, replies: [reply('2', 'Bob', [reply('3', 'Carol')])] };
+
+  const req = http.expectOne((r) => r.url === '/api/comments');
+  req.flush({ items: [top], page: 1, pageSize: 25, totalCount: 1, totalPages: 1 });
+  fixture.detectChanges();
+
+  const element: HTMLElement = fixture.nativeElement;
+  expect(element.querySelectorAll('app-reply-tree .reply').length).toBe(2);
+  expect(element.querySelector('.replies-row')?.textContent).toContain('Carol');
+});
 });

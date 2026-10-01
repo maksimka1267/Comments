@@ -1,0 +1,249 @@
+:host {
+  display: block;
+}
+
+.composer {
+  margin-top: 32px;
+  padding: 22px;
+
+  background: #f5f6f8;
+}
+
+.composer-title {
+  margin-bottom: 18px;
+
+  color: #152541;
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 12px;
+}
+
+label {
+  display: block;
+}
+
+label span {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #4b5b72;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+input,
+textarea {
+  width: 100%;
+
+  border: 1px solid #d9dee7;
+
+  background: #ffffff;
+
+  color: #263754;
+
+  font: inherit;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input {
+  height: 40px;
+
+  padding: 0 11px;
+}
+
+textarea {
+  min-height: 130px;
+
+  padding: 11px;
+
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #789bd5;
+
+  box-shadow:
+    0 0 0 2px rgba(120, 155, 213, 0.12);
+}
+
+.text-field {
+  margin-top: 14px;
+}
+
+.attachment {
+  display: flex;
+  align-items: end;
+
+  gap: 12px;
+
+  margin-top: 14px;
+}
+
+.file-label input {
+  height: auto;
+
+  padding: 7px;
+}
+
+.file-name {
+  margin-bottom: 8px;
+
+  color: #68758a;
+
+  font-size: 13px;
+}
+
+.captcha-section {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 18px;
+}
+
+.captcha-image {
+  width: 180px;
+  height: 55px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #ffffff;
+
+  border: 1px solid #d9dee7;
+
+  overflow: hidden;
+}
+
+.captcha-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+.captcha-refresh {
+  width: 38px;
+  height: 38px;
+
+  border: 1px solid #d9dee7;
+
+  background: #ffffff;
+
+  color: #668ac5;
+
+  font-size: 22px;
+
+  cursor: pointer;
+}
+
+.captcha-refresh:hover:not(:disabled) {
+  color: #426da9;
+  background: #f7f9fc;
+}
+
+.captcha-section input {
+  width: 150px;
+}
+
+.form-error {
+  margin-top: 14px;
+  padding: 10px 12px;
+
+  background: #fff2f0;
+
+  color: #b42318;
+
+  font-size: 14px;
+}
+
+.composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+.composer-actions button {
+  height: 40px;
+
+  padding: 0 18px;
+
+  border: 1px solid #d3dae4;
+
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
+.cancel-button {
+  background: #ffffff;
+  color: #56657b;
+}
+
+.cancel-button:hover {
+  background: #f8f9fb;
+}
+
+.submit-button {
+  border-color: #789bd5 !important;
+
+  background: #789bd5;
+
+  color: #ffffff;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #668bc9;
+}
+
+.submit-button:disabled,
+.captcha-refresh:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 700px) {
+  .composer {
+    padding: 16px;
+  }
+
+  .fields {
+    grid-template-columns: 1fr;
+  }
+
+  .captcha-section {
+    flex-wrap: wrap;
+  }
+
+  .captcha-section input {
+    width: 100%;
+  }
+
+  .attachment {
+    display: block;
+  }
+
+  .file-name {
+    display: block;
+    margin-top: 7px;
+  }
+}
