@@ -1,4 +1,5 @@
 ﻿using Comments.Domain.Abstractions;
+using Comments.Infrastructure.Caching;
 using Comments.Infrastructure.Captcha;
 using Comments.Infrastructure.Files;
 using Comments.Infrastructure.Persistence;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddSingleton<IFileStorage, LocalFileStorage>();
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton<ITextFileProcessor, TextFileProcessor>();
+        services.AddSingleton<ICacheService, RedisCacheService>();
 
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {

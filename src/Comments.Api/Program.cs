@@ -15,10 +15,11 @@ builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddScoped<CommentQueryService>();
+builder.Services.AddScoped<ICommentQueryService, CachedCommentQueryService>();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("Default")!,
     builder.Configuration.GetConnectionString("Redis")!); builder.Services.AddValidatorsFromAssemblyContaining<CreateCommentRequestValidator>();
-builder.Services.AddScoped<ICommentQueryService, CommentQueryService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -30,7 +31,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 var app = builder.Build();
-app.UseForwardedHeaders();
+app.UseForwardedHeaders();  
 
 // в контейнере база создаётся и обновляется автоматически
 if (app.Configuration.GetValue<bool>("MigrateOnStartup"))
