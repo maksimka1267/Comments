@@ -2,7 +2,7 @@ import {
   DatePipe,
   DecimalPipe,
 } from '@angular/common';
-
+import { ImageLightbox } from '../image-lightbox/image-lightbox';
 import {
   Component,
   OnDestroy,
@@ -32,11 +32,12 @@ import { CommentComposer } from '../comment-composer/comment-composer';
   selector: 'app-comment-list',
 
   imports: [
-    DatePipe,
-    DecimalPipe,
-    CommentComposer,
-    ReplyTree,
-  ],
+  DatePipe,
+  DecimalPipe,
+  CommentComposer,
+  ReplyTree,
+  ImageLightbox,
+],
 
   templateUrl: './comment-list.html',
   styleUrl: './comment-list.scss',

@@ -8,6 +8,7 @@ import {
 
 import { CommentDto } from '../../../core/models';
 import { CommentComposer } from '../comment-composer/comment-composer';
+import { ImageLightbox } from '../image-lightbox/image-lightbox';
 
 @Component({
   selector: 'app-reply-tree',
@@ -15,6 +16,7 @@ import { CommentComposer } from '../comment-composer/comment-composer';
     DatePipe,
     DecimalPipe,
     CommentComposer,
+    ImageLightbox,
   ],
   templateUrl: './reply-tree.html',
   styleUrl: './reply-tree.scss',

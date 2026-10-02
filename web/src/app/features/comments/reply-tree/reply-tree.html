@@ -135,19 +135,9 @@
           <!-- Image -->
           @if (attachment.kind === 'Image') {
 
-            <a
-              class="attachment-image-link"
-              [href]="'/api/attachments/' + attachment.id"
-              target="_blank"
-              rel="noopener noreferrer">
-
-              <img
-                class="attachment-image"
-                [src]="'/api/attachments/' + attachment.id"
-                [alt]="attachment.fileName"
-                loading="lazy" />
-
-            </a>
+            <app-image-lightbox
+  [src]="'/api/attachments/' + attachment.id"
+  [alt]="attachment.fileName" />
 
           }
 

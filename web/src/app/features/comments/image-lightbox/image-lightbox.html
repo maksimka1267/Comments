@@ -1,0 +1,73 @@
+<button
+  type="button"
+  class="thumbnail-button"
+  (click)="open()"
+  [attr.aria-label]="'Открыть изображение: ' + alt">
+
+  <img
+    class="thumbnail"
+    [src]="src"
+    [alt]="alt"
+    loading="lazy" />
+
+</button>
+
+@if (opened) {
+  <div
+    class="lightbox"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="alt"
+    (click)="onBackdropClick($event)">
+
+    <div class="lightbox-content">
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Закрыть"
+        title="Закрыть"
+        (click)="close()">
+
+        ×
+
+      </button>
+
+      <img
+        class="lightbox-image"
+        [src]="src"
+        [alt]="alt"
+        [style.transform]="'scale(' + zoom + ')'"
+        (dblclick)="resetZoom()" />
+
+      <div class="lightbox-toolbar">
+
+        <button
+          type="button"
+          (click)="zoomOut()"
+          [disabled]="zoom <= 0.5"
+          aria-label="Уменьшить">
+
+          −
+
+        </button>
+
+        <span>
+          {{ zoom * 100 | number:'1.0-0' }}%
+        </span>
+
+        <button
+          type="button"
+          (click)="zoomIn()"
+          [disabled]="zoom >= 3"
+          aria-label="Увеличить">
+
+          +
+
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+}

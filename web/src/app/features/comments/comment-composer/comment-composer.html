@@ -11,7 +11,10 @@
     }
   </div>
 
+
+  <!-- User fields -->
   <div class="fields">
+
     <label>
       <span>Имя *</span>
 
@@ -22,6 +25,7 @@
         placeholder="Ваше имя"
         autocomplete="name" />
     </label>
+
 
     <label>
       <span>E-mail *</span>
@@ -34,6 +38,7 @@
         autocomplete="email" />
     </label>
 
+
     <label>
       <span>Домашняя страница</span>
 
@@ -44,90 +49,248 @@
         placeholder="https://example.com"
         autocomplete="url" />
     </label>
+
   </div>
 
-  <label class="text-field">
-    <span>Комментарий *</span>
 
-    <textarea
-      name="text"
-      [(ngModel)]="text"
-      rows="6"
-      placeholder="Введите текст комментария...">
-    </textarea>
-  </label>
+  <!-- Text / Preview -->
+  <div class="text-field">
 
+    <div class="editor-header">
+
+      <span>
+        Комментарий *
+      </span>
+
+      <div class="editor-tabs">
+
+        <button
+          type="button"
+          [class.active]="!preview()"
+          (click)="preview.set(false)">
+
+          Написать
+
+        </button>
+
+        <button
+          type="button"
+          [class.active]="preview()"
+          (click)="togglePreview()">
+
+          Предпросмотр
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    @if (!preview()) {
+
+      <!-- Formatting toolbar -->
+      <div class="format-toolbar">
+
+        <button
+          type="button"
+          title="Курсив"
+          (click)="insertTag('i')">
+
+          [i]
+
+        </button>
+
+        <button
+          type="button"
+          title="Жирный"
+          (click)="insertTag('strong')">
+
+          [strong]
+
+        </button>
+
+        <button
+          type="button"
+          title="Код"
+          (click)="insertTag('code')">
+
+          [code]
+
+        </button>
+
+        <button
+          type="button"
+          title="Ссылка"
+          (click)="insertLink()">
+
+          [a]
+
+        </button>
+
+      </div>
+
+
+      <textarea
+        #textArea
+        name="text"
+        [(ngModel)]="text"
+        rows="6"
+        placeholder="Введите текст комментария...">
+      </textarea>
+
+    } @else {
+
+      <div
+        class="preview"
+        aria-label="Предпросмотр комментария">
+
+        @if (text.trim()) {
+
+          <div
+            class="preview-content"
+            [innerHTML]="text">
+          </div>
+
+        } @else {
+
+          <div class="preview-empty">
+            Предпросмотр пока пуст.
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- Attachment -->
   <div class="attachment">
+
     <label class="file-label">
+
       <span>Файл</span>
 
       <input
         type="file"
         accept="image/*,.txt"
         (change)="onFileSelected($event)" />
+
     </label>
 
+
     @if (file) {
+
       <span class="file-name">
         {{ file.name }}
       </span>
+
     }
+
   </div>
 
+
+  <!-- CAPTCHA -->
   <div class="captcha-section">
+
     <div class="captcha-image">
+
       @if (captchaImage()) {
+
         <img
           [src]="captchaImage()!"
           alt="CAPTCHA" />
+
       } @else {
-        <span>Загрузка...</span>
+
+        <span>
+          Загрузка...
+        </span>
+
       }
+
     </div>
+
 
     <button
       type="button"
       class="captcha-refresh"
+
       (click)="loadCaptcha()"
+
       [disabled]="loadingCaptcha()"
+
       title="Обновить CAPTCHA">
+
       ↻
+
     </button>
+
 
     <input
       type="text"
       name="captchaAnswer"
+
       [(ngModel)]="captchaAnswer"
+
       placeholder="Введите код"
+
       autocomplete="off" />
+
   </div>
 
+
+  <!-- Error -->
   @if (error()) {
-    <div class="form-error">
+
+    <div
+      class="form-error">
+
       {{ error() }}
+
     </div>
+
   }
 
+
+  <!-- Actions -->
   <div class="composer-actions">
+
     @if (parentId()) {
+
       <button
         type="button"
         class="cancel-button"
         (click)="cancel()">
+
         Отмена
+
       </button>
+
     }
+
 
     <button
       type="submit"
       class="submit-button"
+
       [disabled]="submitting()">
 
       @if (submitting()) {
+
         Отправка...
+
       } @else {
+
         {{ parentId() ? 'Ответить' : 'Отправить' }}
+
       }
+
     </button>
+
   </div>
+
 </form>

@@ -104,64 +104,45 @@
           class="comment-text"
           [innerHTML]="comment.text">
         </div>
-        @if (
-          comment.attachment;
-          as attachment
-        ) {
+        @if (comment.attachment; as attachment) {
+  <div class="comment-attachment">
 
-          <div class="comment-attachment">
+    @if (attachment.kind === 'Image') {
 
-            <!-- Image -->
-            @if (
-              attachment.kind === 'Image'
-            ) {
+      <app-image-lightbox
+        [src]="'/api/attachments/' + attachment.id"
+        [alt]="attachment.fileName" />
 
-              <a
-                class="attachment-image-link"
-                [href]="'/api/attachments/' + attachment.id"
-                target="_blank"
-                rel="noopener noreferrer">
+    } @else {
 
-                <img
-                  class="attachment-image"
-                  [src]="'/api/attachments/' + attachment.id"
-                  [alt]="attachment.fileName"
-                  loading="lazy" />
+      <a
+        class="attachment-file"
+        [href]="'/api/attachments/' + attachment.id"
+        target="_blank"
+        rel="noopener noreferrer">
 
-              </a>
+        <span class="attachment-file-icon">
+          📄
+        </span>
 
-            }
-            @else {
+        <span class="attachment-file-info">
 
-              <a
-                class="attachment-file"
-                [href]="'/api/attachments/' + attachment.id"
-                target="_blank"
-                rel="noopener noreferrer">
+          <span class="attachment-file-name">
+            {{ attachment.fileName }}
+          </span>
 
-                <span class="attachment-file-icon">
-                  📄
-                </span>
+          <span class="attachment-file-size">
+            {{ attachment.sizeBytes / 1024 | number:'1.0-1' }} KB
+          </span>
 
-                <span class="attachment-file-info">
+        </span>
 
-                  <span class="attachment-file-name">
-                    {{ attachment.fileName }}
-                  </span>
+      </a>
 
-                  <span class="attachment-file-size">
-                    {{ attachment.sizeBytes / 1024 | number:'1.0-1' }} KB
-                  </span>
+    }
 
-                </span>
-
-              </a>
-
-            }
-
-          </div>
-
-        }
+  </div>
+}
 
       </div>
       @if (replyingTo() === comment.id) {
