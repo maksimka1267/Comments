@@ -1,6 +1,3 @@
-<section
-  class="discussion"
-  aria-label="Комментарии">
 @if (hasUpdates()) {
 
   <div role="status">
@@ -18,12 +15,60 @@
   </div>
 
 }
+
+<div
+  class="sort-bar"
+  role="group"
+  aria-label="Сортировка комментариев">
+
+  <span class="sort-label">Сортировать:</span>
+
+  <button
+    type="button"
+    class="sort-button"
+    data-sort="userName"
+    [class.active]="sortBy() === 'userName'"
+    (click)="sort('userName')">
+
+    User Name {{ indicator('userName') }}
+
+  </button>
+
+  <button
+    type="button"
+    class="sort-button"
+    data-sort="email"
+    [class.active]="sortBy() === 'email'"
+    (click)="sort('email')">
+
+    E-mail {{ indicator('email') }}
+
+  </button>
+
+  <button
+    type="button"
+    class="sort-button"
+    data-sort="date"
+    [class.active]="sortBy() === 'date'"
+    (click)="sort('date')">
+
+    Дата {{ indicator('date') }}
+
+  </button>
+
+</div>
+
+<section
+  class="discussion"
+  aria-label="Комментарии">
+
   @for (
     comment of comments();
     track comment.id
   ) {
 
     <article class="comment-root">
+
       <header class="comment-header">
 
         <div class="comment-author">
@@ -48,7 +93,9 @@
           </time>
 
         </div>
+
         <div class="comment-actions">
+
           <button
             type="button"
             aria-label="Ссылка на комментарий"
@@ -60,6 +107,7 @@
               <path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 7 20l1.15-1.15" />
             </svg>
           </button>
+
           <button
             type="button"
             aria-label="Сохранить"
@@ -70,6 +118,7 @@
               <path d="M6 4.5A2.5 2.5 0 0 1 8.5 2h7A2.5 2.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z" />
             </svg>
           </button>
+
           <button
             type="button"
             aria-label="Ответить"
@@ -83,6 +132,7 @@
               <path d="m14 13 3 3 3-3" />
             </svg>
           </button>
+
           <button
             type="button"
             aria-label="Открыть комментарий"
@@ -98,21 +148,29 @@
               <path d="m9.5 11.5 2.5-2.5 2.5 2.5" />
             </svg>
           </button>
+
         </div>
+
         <div class="vote-controls">
+
           <button
             type="button"
             aria-label="Плюс">
             ↑
           </button>
+
           <span>0</span>
+
           <button
             type="button"
             aria-label="Минус">
             ↓
           </button>
+
         </div>
+
       </header>
+
 
       <div class="comment-body">
 
@@ -120,47 +178,52 @@
           class="comment-text"
           [innerHTML]="comment.text">
         </div>
+
         @if (comment.attachment; as attachment) {
-  <div class="comment-attachment">
 
-    @if (attachment.kind === 'Image') {
+          <div class="comment-attachment">
 
-      <app-image-lightbox
-        [src]="'/api/attachments/' + attachment.id"
-        [alt]="attachment.fileName" />
+            @if (attachment.kind === 'Image') {
 
-    } @else {
+              <app-image-lightbox
+                [src]="'/api/attachments/' + attachment.id"
+                [alt]="attachment.fileName" />
 
-      <a
-        class="attachment-file"
-        [href]="'/api/attachments/' + attachment.id"
-        target="_blank"
-        rel="noopener noreferrer">
+            } @else {
 
-        <span class="attachment-file-icon">
-          📄
-        </span>
+              <a
+                class="attachment-file"
+                [href]="'/api/attachments/' + attachment.id"
+                target="_blank"
+                rel="noopener noreferrer">
 
-        <span class="attachment-file-info">
+                <span class="attachment-file-icon">
+                  📄
+                </span>
 
-          <span class="attachment-file-name">
-            {{ attachment.fileName }}
-          </span>
+                <span class="attachment-file-info">
 
-          <span class="attachment-file-size">
-            {{ attachment.sizeBytes / 1024 | number:'1.0-1' }} KB
-          </span>
+                  <span class="attachment-file-name">
+                    {{ attachment.fileName }}
+                  </span>
 
-        </span>
+                  <span class="attachment-file-size">
+                    {{ attachment.sizeBytes / 1024 | number:'1.0-1' }} KB
+                  </span>
 
-      </a>
+                </span>
 
-    }
+              </a>
 
-  </div>
-}
+            }
+
+          </div>
+
+        }
 
       </div>
+
+
       @if (replyingTo() === comment.id) {
 
         <app-comment-composer
@@ -169,6 +232,8 @@
           (cancelled)="cancelReply()" />
 
       }
+
+
       @if (comment.replies.length > 0) {
 
         <app-reply-tree
@@ -211,6 +276,8 @@
   }
 
 </section>
+
+
 @if (error(); as message) {
 
   <p
@@ -222,19 +289,25 @@
   </p>
 
 }
+
+
 @if (totalPages() > 1) {
 
   <nav
     class="pager"
     aria-label="Страницы">
+
+    <!-- Previous -->
     <button
       type="button"
       class="pager-arrow"
+      data-page="prev"
 
       [disabled]="
         page() === 1 ||
         loading()
       "
+
       (click)="goTo(page() - 1)"
 
       aria-label="Предыдущая страница">
@@ -242,6 +315,9 @@
       ‹
 
     </button>
+
+
+    <!-- Page numbers -->
     @for (
       p of pages();
       track p
@@ -250,6 +326,7 @@
       <button
         type="button"
         class="pager-number"
+        [attr.data-page]="p"
 
         [class.active]="
           p === page()
@@ -276,6 +353,7 @@
     <button
       type="button"
       class="pager-arrow"
+      data-page="next"
 
       [disabled]="
         page() === totalPages() ||
@@ -299,6 +377,7 @@
   </nav>
 
 }
+
 
 @if (!replyingTo()) {
 

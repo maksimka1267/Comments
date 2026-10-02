@@ -161,7 +161,7 @@ describe('CommentList', () => {
 
     const element: HTMLElement = fixture.nativeElement;
     expect(element.querySelectorAll('app-reply-tree .reply').length).toBe(2);
-    expect(element.querySelector('.replies-row')?.textContent).toContain('Carol');
+    expect(element.querySelector('app-reply-tree')?.textContent).toContain('Carol');
   });
 
   describe('real-time updates', () => {

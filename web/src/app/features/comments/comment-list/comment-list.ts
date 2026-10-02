@@ -2,7 +2,7 @@ import {
   DatePipe,
   DecimalPipe,
 } from '@angular/common';
-import { ImageLightbox } from '../image-lightbox/image-lightbox';
+
 import {
   Component,
   OnDestroy,
@@ -12,13 +12,16 @@ import {
   signal,
 } from '@angular/core';
 
-import { Subscription } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { Subscription } from 'rxjs';
+
+import { CommentsApi } from '../../../core/comments-api';
+
 import {
   CommentCreatedNotification,
   CommentsRealtime,
 } from '../../../core/comments-realtime';
-import { CommentsApi } from '../../../core/comments-api';
 
 import {
   CommentDto,
@@ -28,20 +31,21 @@ import {
 
 import { visiblePages } from './pagination';
 
-import { ReplyTree } from '../reply-tree/reply-tree';
 import { CommentComposer } from '../comment-composer/comment-composer';
+import { ImageLightbox } from '../image-lightbox/image-lightbox';
+import { ReplyTree } from '../reply-tree/reply-tree';
 
 
 @Component({
   selector: 'app-comment-list',
 
   imports: [
-  DatePipe,
-  DecimalPipe,
-  CommentComposer,
-  ReplyTree,
-  ImageLightbox,
-],
+    DatePipe,
+    DecimalPipe,
+    CommentComposer,
+    ReplyTree,
+    ImageLightbox,
+  ],
 
   templateUrl: './comment-list.html',
   styleUrl: './comment-list.scss',
@@ -49,7 +53,9 @@ import { CommentComposer } from '../comment-composer/comment-composer';
 export class CommentList implements OnInit, OnDestroy {
 
   private readonly api = inject(CommentsApi);
+
   private readonly realtime = inject(CommentsRealtime);
+
   private request?: Subscription;
 
 
@@ -89,6 +95,7 @@ export class CommentList implements OnInit, OnDestroy {
   protected readonly error =
     signal<string | null>(null);
 
+
   // Real-time updates
   protected readonly newCommentIds =
     signal<ReadonlySet<string>>(new Set());
@@ -102,14 +109,19 @@ export class CommentList implements OnInit, OnDestroy {
       this.missedUpdates(),
     );
 
-  // ID всех комментариев и ответов, которые сейчас на экране
+
+  // ID of all comments and replies that are currently on screen
   private readonly visibleIds =
     computed(() => {
+
       const ids = new Set<string>();
 
       const walk = (items: CommentDto[]): void => {
+
         for (const item of items) {
+
           ids.add(item.id);
+
           walk(item.replies);
         }
       };
@@ -118,6 +130,8 @@ export class CommentList implements OnInit, OnDestroy {
 
       return ids;
     });
+
+
   // Pagination buttons
   protected readonly pages =
     computed(() =>
@@ -128,16 +142,20 @@ export class CommentList implements OnInit, OnDestroy {
     );
 
 
-    constructor() {
+  constructor() {
+
     this.realtime.commentCreated$
       .pipe(takeUntilDestroyed())
       .subscribe((notification) =>
         this.onRemoteComment(notification),
       );
 
+    // connection was restored: some events could have been lost
     this.realtime.resync$
       .pipe(takeUntilDestroyed())
-      .subscribe(() => this.missedUpdates.set(true));
+      .subscribe(() =>
+        this.missedUpdates.set(true),
+      );
   }
 
 
@@ -176,40 +194,15 @@ export class CommentList implements OnInit, OnDestroy {
     this.replyingTo.set(null);
     this.load();
   }
+
+
   /**
-   * Reload the current page after the user clicked the "new comments" banner.
+   * Reload the current page after the "new comments" banner was clicked.
    */
   protected refresh(): void {
     this.load();
   }
 
-
-  /**
-   * Someone created a comment: remember it, but do not touch the list.
-   */
-  private onRemoteComment(
-    notification: CommentCreatedNotification,
-  ): void {
-
-    const known = this.visibleIds();
-
-    // уже на экране (например, свой комментарий)
-    if (known.has(notification.commentId)) {
-      return;
-    }
-
-    // ответ интересен, только если его родитель сейчас виден
-    if (
-      notification.parentId &&
-      !known.has(notification.parentId)
-    ) {
-      return;
-    }
-
-    this.newCommentIds.update((ids) =>
-      new Set(ids).add(notification.commentId),
-    );
-  }
 
   /**
    * Change sorting.
@@ -315,6 +308,34 @@ export class CommentList implements OnInit, OnDestroy {
 
 
   /**
+   * Someone created a comment: remember it, but do not touch the list.
+   */
+  private onRemoteComment(
+    notification: CommentCreatedNotification,
+  ): void {
+
+    const known = this.visibleIds();
+
+    // already on screen (for example, the user's own comment)
+    if (known.has(notification.commentId)) {
+      return;
+    }
+
+    // a reply matters only if its parent is on screen right now
+    if (
+      notification.parentId &&
+      !known.has(notification.parentId)
+    ) {
+      return;
+    }
+
+    this.newCommentIds.update((ids) =>
+      new Set(ids).add(notification.commentId),
+    );
+  }
+
+
+  /**
    * Load comments from API.
    */
   private load(): void {
@@ -323,8 +344,10 @@ export class CommentList implements OnInit, OnDestroy {
 
     this.loading.set(true);
     this.error.set(null);
+
     this.newCommentIds.set(new Set());
     this.missedUpdates.set(false);
+
 
     this.request = this.api
       .list(
@@ -348,11 +371,14 @@ export class CommentList implements OnInit, OnDestroy {
           this.totalCount.set(
             result.totalCount,
           );
+
+          // drop notifications about comments that are already in the loaded list
           const known = this.visibleIds();
 
           this.newCommentIds.update((ids) =>
             new Set([...ids].filter((id) => !known.has(id))),
           );
+
           this.loading.set(false);
         },
 
