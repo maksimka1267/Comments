@@ -71,5 +71,7 @@ Content-Type: application/json
   "text": "Комментарий с капчей",
   "parentId": null,
   "captchaId": "00b45f5c-4f94-4c29-ac0d-1d80300f79a8",
-  "captchaAnswer": chunked
+  "captchaAnswer": "chunked"
 }
+### SignalR: negotiate (ожидаем 200 с connectionId и availableTransports)
+POST {{host}}/hubs/comments/negotiate?negotiateVersion=1

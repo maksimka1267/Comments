@@ -1,11 +1,16 @@
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.EntityFrameworkCore;
+
+using Comments.Api.Hubs;
 using Comments.Api.Services;
 using Comments.Api.Validators;
+using Comments.Domain.Abstractions;
 using Comments.Infrastructure;
 using Comments.Infrastructure.Persistence;
+
 using FluentValidation;
+
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +29,9 @@ builder.Services.AddInfrastructure(
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCommentRequestValidator>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IRealtimeNotifier, SignalRRealtimeNotifier>();
+
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -54,5 +62,6 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<CommentsHub>(CommentsHub.Route);
 
 app.Run();
