@@ -26,7 +26,20 @@
       interval: 5s
       timeout: 3s
       retries: 10
-
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: comments
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:-comments_dev}"
+    ports:
+      - "5672:5672"     # для разработки с локальным API
+      - "15672:15672"   # веб-интерфейс управления
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
   api:
     build:
       context: .
@@ -35,6 +48,7 @@
       ASPNETCORE_ENVIRONMENT: Production
       MigrateOnStartup: "true"
       ConnectionStrings__Default: "Server=mssql;Database=Comments;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Comments_Dev123!};TrustServerCertificate=True"
+      ConnectionStrings__RabbitMq: "amqp://comments:${RABBITMQ_PASSWORD:-comments_dev}@rabbitmq:5672/"
       ConnectionStrings__Redis: "redis:6379"
       FileStorage__RootPath: /app/uploads
     volumes:
@@ -44,7 +58,8 @@
         condition: service_healthy
       redis:
         condition: service_healthy
-
+      rabbitmq:
+        condition: service_healthy
   web:
     build: ./web
     ports:

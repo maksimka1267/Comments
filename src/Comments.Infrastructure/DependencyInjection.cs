@@ -4,6 +4,7 @@ using Comments.Infrastructure.Caching;
 using Comments.Infrastructure.Captcha;
 using Comments.Infrastructure.Events;
 using Comments.Infrastructure.Files;
+using Comments.Infrastructure.Messaging;
 using Comments.Infrastructure.Persistence;
 using Comments.Infrastructure.Text;
 
@@ -19,7 +20,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         string connectionString,
-        string redisConnectionString)
+        string redisConnectionString, string rabbitMqConnectionString)
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(
@@ -40,6 +41,9 @@ public static class DependencyInjection
         services.AddSingleton<ICacheService, RedisCacheService>();
         services.AddScoped<IEventDispatcher, InProcessEventDispatcher>();
         services.AddScoped<IEventHandler<CommentCreatedEvent>, CommentListCacheInvalidationHandler>();
+        services.AddSingleton(new RabbitMqSettings(rabbitMqConnectionString));
+        services.AddSingleton<RabbitMqConnection>();
+        services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {
