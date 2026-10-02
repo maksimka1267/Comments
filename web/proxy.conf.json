@@ -2,5 +2,11 @@
   "/api": {
     "target": "https://localhost:7186",
     "secure": false
-  }
+  },
+"/hubs": {
+  "target": "https://localhost:7186",
+  "secure": false,
+  "ws": true,
+  "changeOrigin": true
+}
 }

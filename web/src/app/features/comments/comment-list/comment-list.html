@@ -1,7 +1,23 @@
 <section
   class="discussion"
   aria-label="Комментарии">
+@if (hasUpdates()) {
 
+  <div role="status">
+
+    <button
+      type="button"
+      class="new-comments"
+      [disabled]="loading()"
+      (click)="refresh()">
+
+      Появились новые комментарии. Обновить
+
+    </button>
+
+  </div>
+
+}
   @for (
     comment of comments();
     track comment.id

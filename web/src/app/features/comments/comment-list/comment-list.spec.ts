@@ -1,12 +1,50 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject } from 'rxjs';
+
 import { CommentList } from './comment-list';
 import { CommentDto } from '../../../core/models';
+import { CommentCreatedNotification, CommentsRealtime } from '../../../core/comments-realtime';
+
+// заглушка: настоящее подключение к хабу в тестах не нужно
+class FakeRealtime {
+  readonly created = new Subject<CommentCreatedNotification>();
+  readonly resync = new Subject<void>();
+
+  readonly commentCreated$ = this.created.asObservable();
+  readonly resync$ = this.resync.asObservable();
+
+  started = false;
+  stopped = false;
+
+  start(): void {
+    this.started = true;
+  }
+
+  stop(): void {
+    this.stopped = true;
+  }
+}
+
+function makeComment(id: string, userName: string, replies: CommentDto[] = []): CommentDto {
+  return {
+    id,
+    parentId: 'x',
+    userName,
+    email: `${userName}@example.com`,
+    homePage: null,
+    text: `text of ${userName}`,
+    createdAt: '2026-09-30T20:49:52Z',
+    attachment: null,
+    replies,
+  };
+}
 
 describe('CommentList', () => {
   let fixture: ComponentFixture<CommentList>;
   let http: HttpTestingController;
+  let realtime: FakeRealtime;
 
   // ловит ближайший запрос списка, проверяет параметры и отвечает пустой страницей
   function expectList(sortBy: string, sortDir: string, page = 1, totalPages = 0): void {
@@ -19,6 +57,13 @@ describe('CommentList', () => {
     fixture.detectChanges();
   }
 
+  // отвечает на ближайший запрос списка заданными комментариями
+  function flushList(items: CommentDto[]): void {
+    const req = http.expectOne((r) => r.url === '/api/comments');
+    req.flush({ items, page: 1, pageSize: 25, totalCount: items.length, totalPages: 1 });
+    fixture.detectChanges();
+  }
+
   function clickSort(field: string): void {
     fixture.nativeElement.querySelector(`[data-sort="${field}"]`).click();
   }
@@ -27,10 +72,20 @@ describe('CommentList', () => {
     fixture.nativeElement.querySelector(`[data-page="${target}"]`).click();
   }
 
+  function banner(): HTMLElement | null {
+    return fixture.nativeElement.querySelector('.new-comments');
+  }
+
   beforeEach(async () => {
+    realtime = new FakeRealtime();
+
     await TestBed.configureTestingModule({
       imports: [CommentList],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CommentsRealtime, useValue: realtime },
+      ],
     }).compileComponents();
 
     http = TestBed.inject(HttpTestingController);
@@ -94,27 +149,83 @@ describe('CommentList', () => {
     clickSort('email');
     expectList('email', 'asc', 1, 3);
   });
+
   it('shows replies under their top-level comment', () => {
-  const reply = (id: string, userName: string, replies: CommentDto[] = []): CommentDto => ({
-    id,
-    parentId: 'x',
-    userName,
-    email: `${userName}@example.com`,
-    homePage: null,
-    text: `text of ${userName}`,
-    createdAt: '2026-09-30T20:49:52Z',
-    attachment: null,
-    replies,
+    const top = {
+      ...makeComment('1', 'Anna'),
+      parentId: null,
+      replies: [makeComment('2', 'Bob', [makeComment('3', 'Carol')])],
+    };
+
+    flushList([top]);
+
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.querySelectorAll('app-reply-tree .reply').length).toBe(2);
+    expect(element.querySelector('.replies-row')?.textContent).toContain('Carol');
   });
 
-  const top = { ...reply('1', 'Anna'), parentId: null, replies: [reply('2', 'Bob', [reply('3', 'Carol')])] };
+  describe('real-time updates', () => {
+    // на экране: комментарий "a" и его ответ "a1"
+    beforeEach(() => {
+      flushList([makeComment('a', 'Anna', [makeComment('a1', 'Bob')])]);
+    });
 
-  const req = http.expectOne((r) => r.url === '/api/comments');
-  req.flush({ items: [top], page: 1, pageSize: 25, totalCount: 1, totalPages: 1 });
-  fixture.detectChanges();
+    it('starts the connection on init and stops it on destroy', () => {
+      expect(realtime.started).toBe(true);
 
-  const element: HTMLElement = fixture.nativeElement;
-  expect(element.querySelectorAll('app-reply-tree .reply').length).toBe(2);
-  expect(element.querySelector('.replies-row')?.textContent).toContain('Carol');
-});
+      fixture.destroy();
+
+      expect(realtime.stopped).toBe(true);
+    });
+
+    it('shows no banner until something happens', () => {
+      expect(banner()).toBeNull();
+    });
+
+    it('shows the banner for a new top-level comment', () => {
+      realtime.created.next({ commentId: 'b', parentId: null });
+      fixture.detectChanges();
+
+      expect(banner()).not.toBeNull();
+    });
+
+    it('ignores comments that are already on screen', () => {
+      realtime.created.next({ commentId: 'a', parentId: null });
+      realtime.created.next({ commentId: 'a1', parentId: 'a' });
+      fixture.detectChanges();
+
+      expect(banner()).toBeNull();
+    });
+
+    it('ignores a reply whose parent is not on screen', () => {
+      realtime.created.next({ commentId: 'x', parentId: 'not-on-screen' });
+      fixture.detectChanges();
+
+      expect(banner()).toBeNull();
+    });
+
+    it('shows the banner for a reply to a visible comment', () => {
+      realtime.created.next({ commentId: 'y', parentId: 'a1' });
+      fixture.detectChanges();
+
+      expect(banner()).not.toBeNull();
+    });
+
+    it('shows the banner after the connection was restored', () => {
+      realtime.resync.next();
+      fixture.detectChanges();
+
+      expect(banner()).not.toBeNull();
+    });
+
+    it('reloads the list and hides the banner on click', () => {
+      realtime.created.next({ commentId: 'b', parentId: null });
+      fixture.detectChanges();
+
+      banner()!.click();
+      flushList([makeComment('b', 'Carol'), makeComment('a', 'Anna')]);
+
+      expect(banner()).toBeNull();
+    });
+  });
 });

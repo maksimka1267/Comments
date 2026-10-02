@@ -340,3 +340,24 @@ time {
     line-height: 1.65;
   }
 }
+.new-comments {
+  display: block;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #b6d4fe;
+  border-radius: 6px;
+  background: #e7f1ff;
+  color: #084298;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #d0e4ff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}

@@ -13,7 +13,11 @@ import {
 } from '@angular/core';
 
 import { Subscription } from 'rxjs';
-
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  CommentCreatedNotification,
+  CommentsRealtime,
+} from '../../../core/comments-realtime';
 import { CommentsApi } from '../../../core/comments-api';
 
 import {
@@ -45,7 +49,7 @@ import { CommentComposer } from '../comment-composer/comment-composer';
 export class CommentList implements OnInit, OnDestroy {
 
   private readonly api = inject(CommentsApi);
-
+  private readonly realtime = inject(CommentsRealtime);
   private request?: Subscription;
 
 
@@ -85,7 +89,35 @@ export class CommentList implements OnInit, OnDestroy {
   protected readonly error =
     signal<string | null>(null);
 
+  // Real-time updates
+  protected readonly newCommentIds =
+    signal<ReadonlySet<string>>(new Set());
 
+  protected readonly missedUpdates =
+    signal(false);
+
+  protected readonly hasUpdates =
+    computed(() =>
+      this.newCommentIds().size > 0 ||
+      this.missedUpdates(),
+    );
+
+  // ID всех комментариев и ответов, которые сейчас на экране
+  private readonly visibleIds =
+    computed(() => {
+      const ids = new Set<string>();
+
+      const walk = (items: CommentDto[]): void => {
+        for (const item of items) {
+          ids.add(item.id);
+          walk(item.replies);
+        }
+      };
+
+      walk(this.comments());
+
+      return ids;
+    });
   // Pagination buttons
   protected readonly pages =
     computed(() =>
@@ -96,13 +128,28 @@ export class CommentList implements OnInit, OnDestroy {
     );
 
 
+    constructor() {
+    this.realtime.commentCreated$
+      .pipe(takeUntilDestroyed())
+      .subscribe((notification) =>
+        this.onRemoteComment(notification),
+      );
+
+    this.realtime.resync$
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.missedUpdates.set(true));
+  }
+
+
   ngOnInit(): void {
     this.load();
+    this.realtime.start();
   }
 
 
   ngOnDestroy(): void {
     this.request?.unsubscribe();
+    this.realtime.stop();
   }
 
 
@@ -129,7 +176,40 @@ export class CommentList implements OnInit, OnDestroy {
     this.replyingTo.set(null);
     this.load();
   }
+  /**
+   * Reload the current page after the user clicked the "new comments" banner.
+   */
+  protected refresh(): void {
+    this.load();
+  }
 
+
+  /**
+   * Someone created a comment: remember it, but do not touch the list.
+   */
+  private onRemoteComment(
+    notification: CommentCreatedNotification,
+  ): void {
+
+    const known = this.visibleIds();
+
+    // уже на экране (например, свой комментарий)
+    if (known.has(notification.commentId)) {
+      return;
+    }
+
+    // ответ интересен, только если его родитель сейчас виден
+    if (
+      notification.parentId &&
+      !known.has(notification.parentId)
+    ) {
+      return;
+    }
+
+    this.newCommentIds.update((ids) =>
+      new Set(ids).add(notification.commentId),
+    );
+  }
 
   /**
    * Change sorting.
@@ -243,7 +323,8 @@ export class CommentList implements OnInit, OnDestroy {
 
     this.loading.set(true);
     this.error.set(null);
-
+    this.newCommentIds.set(new Set());
+    this.missedUpdates.set(false);
 
     this.request = this.api
       .list(
@@ -267,7 +348,11 @@ export class CommentList implements OnInit, OnDestroy {
           this.totalCount.set(
             result.totalCount,
           );
+          const known = this.visibleIds();
 
+          this.newCommentIds.update((ids) =>
+            new Set([...ids].filter((id) => !known.has(id))),
+          );
           this.loading.set(false);
         },
 
