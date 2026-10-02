@@ -2,6 +2,7 @@
 using Comments.Api.Services;
 using Comments.Domain.Abstractions;
 using Comments.Domain.Entities;
+using Comments.Domain.Events;
 using Comments.Infrastructure.Files;
 using Comments.Infrastructure.Persistence;
 using Comments.Infrastructure.Text;
@@ -38,9 +39,42 @@ public sealed class CommentServiceAttachmentTests : IDisposable
             Directory.Delete(_root, recursive: true);
     }
 
-    private CommentService CreateService(bool captchaOk = true) => new(
+    private sealed class RecordingDispatcher : IEventDispatcher
+    {
+        public List<object> Events { get; } = [];
+
+        public Task PublishAsync<TEvent>(TEvent @event, CancellationToken ct)
+        {
+            Events.Add(@event!);
+            return Task.CompletedTask;
+        }
+    }
+
+    private CommentService CreateService(bool captchaOk = true, IEventDispatcher? events = null) => new(
         _db, new HtmlMessageSanitizer(), new FakeCaptcha(captchaOk),
-        new SkiaImageProcessor(), new TextFileProcessor(), _storage);
+        new SkiaImageProcessor(), new TextFileProcessor(), _storage,
+        events ?? new RecordingDispatcher());
+
+    [Fact]
+    public async Task Creating_a_comment_publishes_an_event()
+    {
+        var events = new RecordingDispatcher();
+
+        await CreateService(events: events).CreateAsync(Request(), null, Client, default);
+
+        var published = Assert.IsType<CommentCreatedEvent>(Assert.Single(events.Events));
+        Assert.Equal("Anna", published.UserName);
+    }
+
+    [Fact]
+    public async Task Rejected_comment_publishes_nothing()
+    {
+        var events = new RecordingDispatcher();
+
+        await CreateService(captchaOk: false, events: events).CreateAsync(Request(), null, Client, default);
+
+        Assert.Empty(events.Events);
+    }
 
     private static CreateCommentRequest Request() =>
         new("Anna", "anna@example.com", null, "Hello", null, Guid.NewGuid(), "AB3CD");

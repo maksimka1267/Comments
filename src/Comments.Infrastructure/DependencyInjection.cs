@@ -1,6 +1,8 @@
 ﻿using Comments.Domain.Abstractions;
+using Comments.Domain.Events;
 using Comments.Infrastructure.Caching;
 using Comments.Infrastructure.Captcha;
+using Comments.Infrastructure.Events;
 using Comments.Infrastructure.Files;
 using Comments.Infrastructure.Persistence;
 using Comments.Infrastructure.Text;
@@ -36,6 +38,8 @@ public static class DependencyInjection
         services.AddSingleton<IImageProcessor, SkiaImageProcessor>();
         services.AddSingleton<ITextFileProcessor, TextFileProcessor>();
         services.AddSingleton<ICacheService, RedisCacheService>();
+        services.AddScoped<IEventDispatcher, InProcessEventDispatcher>();
+        services.AddScoped<IEventHandler<CommentCreatedEvent>, CommentListCacheInvalidationHandler>();
 
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {
