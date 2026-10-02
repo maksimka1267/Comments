@@ -41,7 +41,7 @@ public sealed class CommentsController(
         if (file is { Length: > 0 })
         {
             // размер проверяем до чтения в память
-            var isText = Path.GetExtension(file.FileName).Equals(".txt", StringComparison.OrdinalIgnoreCase);
+            var isText = System.IO.Path.GetExtension(file.FileName).Equals(".txt", StringComparison.OrdinalIgnoreCase);
             var limit = isText ? TextFileProcessor.MaxBytes : MaxImageBytes;
             if (file.Length > limit)
             {

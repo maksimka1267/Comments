@@ -6,6 +6,8 @@ using Comments.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
 
+using Path = System.IO.Path;
+
 namespace Comments.Api.Services;
 
 public sealed class CommentService(

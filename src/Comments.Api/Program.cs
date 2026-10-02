@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 
+using Comments.Api.GraphQL;
 using Comments.Api.Hubs;
 using Comments.Api.Services;
 using Comments.Api.Validators;
@@ -30,6 +31,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateCommentRequestValidat
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 builder.Services.AddSignalR();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMaxExecutionDepthRule(12);
 builder.Services.AddSingleton<IRealtimeNotifier, SignalRRealtimeNotifier>();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -63,5 +68,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<CommentsHub>(CommentsHub.Route);
-
+app.MapGraphQL();
 app.Run();

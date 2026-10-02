@@ -75,3 +75,9 @@ Content-Type: application/json
 }
 ### SignalR: negotiate (ожидаем 200 с connectionId и availableTransports)
 POST {{host}}/hubs/comments/negotiate?negotiateVersion=1
+
+### GraphQL: список заглавных комментариев
+POST {{host}}/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(sortBy: DATE, sortDir: DESC, page: 1) { page totalCount totalPages items { id userName replies { id userName } } } }" }
