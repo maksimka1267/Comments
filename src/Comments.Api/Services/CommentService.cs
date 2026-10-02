@@ -1,6 +1,7 @@
 ﻿using Comments.Api.Contracts;
 using Comments.Domain.Abstractions;
 using Comments.Domain.Entities;
+using Comments.Domain.Events;
 using Comments.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,8 @@ public sealed class CommentService(
     ICaptchaService captcha,
     IImageProcessor images,
     ITextFileProcessor texts,
-    IFileStorage storage) : ICommentService
+    IFileStorage storage,
+    IEventDispatcher events) : ICommentService
 {
     private const int MaxUserAgentLength = 512;
     private const int MaxFileNameLength = 255;
@@ -85,6 +87,12 @@ public sealed class CommentService(
                 await storage.DeleteAsync(storedName, CancellationToken.None);
             throw;
         }
+
+        // комментарий сохранён: сообщаем об этом обработчикам (сброс кэша, публикация в очередь)
+        await events.PublishAsync(
+            new CommentCreatedEvent(comment.Id, comment.ParentId, user.UserName, user.Email,
+                                    comment.Text, comment.CreatedAt),
+            ct);
 
         var attachment = comment.Attachment is null
             ? null
