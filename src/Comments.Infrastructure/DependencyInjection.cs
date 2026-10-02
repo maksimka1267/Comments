@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
         services.AddScoped<IEventHandler<CommentCreatedEvent>, CommentQueuePublishingHandler>();
         services.AddHostedService<CommentAuditConsumer>();
+        services.AddHostedService<CommentRealtimeConsumer>();
 
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {

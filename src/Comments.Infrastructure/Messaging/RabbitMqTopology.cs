@@ -26,4 +26,19 @@ public static class RabbitMqTopology
             arguments: arguments, cancellationToken: ct);
         await channel.QueueBindAsync(queue, Exchange, routingKey, cancellationToken: ct);
     }
+    /// <summary>
+    /// Временная очередь экземпляра: имя даёт брокер, очередь эксклюзивная и удаляется
+    /// при отключении. Так каждый экземпляр API получает свою копию сообщения.
+    /// </summary>
+    public static async Task<string> DeclareTemporaryQueueAsync(
+        IChannel channel, string routingKey, CancellationToken ct)
+    {
+        await DeclareExchangeAsync(channel, ct);
+
+        var queue = await channel.QueueDeclareAsync("", durable: false, exclusive: true, autoDelete: true,
+            cancellationToken: ct);
+        await channel.QueueBindAsync(queue.QueueName, Exchange, routingKey, cancellationToken: ct);
+
+        return queue.QueueName;
+    }
 }

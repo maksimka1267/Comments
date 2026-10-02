@@ -20,7 +20,12 @@ public abstract class RabbitMqConsumer<TMessage>(
     protected abstract string RoutingKey { get; }
 
     protected abstract Task HandleAsync(IServiceProvider services, TMessage message, CancellationToken ct);
-
+    // по умолчанию: именованная устойчивая очередь с dead-letter; потомок может переопределить
+    protected virtual async Task<string> DeclareQueueAsync(IChannel channel, CancellationToken ct)
+    {
+        await RabbitMqTopology.DeclareQueueAsync(channel, QueueName, RoutingKey, ct);
+        return QueueName;
+    }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -48,7 +53,7 @@ public abstract class RabbitMqConsumer<TMessage>(
         var conn = await connection.GetAsync(ct);
         await using var channel = await conn.CreateChannelAsync(cancellationToken: ct);
 
-        await RabbitMqTopology.DeclareQueueAsync(channel, QueueName, RoutingKey, ct);
+        var queue = await DeclareQueueAsync(channel, ct);
         await channel.BasicQosAsync(0, 10, false, ct); // не больше 10 необработанных сообщений за раз
 
         var consumer = new AsyncEventingBasicConsumer(channel);
@@ -73,7 +78,7 @@ public abstract class RabbitMqConsumer<TMessage>(
             }
         };
 
-        await channel.BasicConsumeAsync(QueueName, autoAck: false, consumer, ct);
+        await channel.BasicConsumeAsync(queue, autoAck: false, consumer, ct);
 
         // держим канал открытым, пока работает приложение
         await Task.Delay(Timeout.Infinite, ct);
