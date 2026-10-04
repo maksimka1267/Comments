@@ -6,6 +6,7 @@ using Comments.Infrastructure.Events;
 using Comments.Infrastructure.Files;
 using Comments.Infrastructure.Messaging;
 using Comments.Infrastructure.Persistence;
+using Comments.Infrastructure.Search;
 using Comments.Infrastructure.Text;
 
 using Elastic.Clients.Elasticsearch;
@@ -51,6 +52,8 @@ public static class DependencyInjection
         services.AddScoped<IEventHandler<CommentCreatedEvent>, CommentQueuePublishingHandler>();
         services.AddHostedService<CommentAuditConsumer>();
         services.AddHostedService<CommentRealtimeConsumer>();
+        services.AddSingleton<ICommentSearchIndex, ElasticCommentSearchIndex>();
+        services.AddHostedService<CommentSearchIndexingConsumer>();
 
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {

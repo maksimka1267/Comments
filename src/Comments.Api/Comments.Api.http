@@ -99,3 +99,13 @@ Content-Type: application/json
 { "query": "{ comments(page: 1) { page totalCount items { userName } } }" }
 ### Elasticsearch жив
 GET http://localhost:9200/_cluster/health
+### Что лежит в индексе (после создания комментария пройдёт около секунды)
+GET http://localhost:9200/comments/_search
+
+### Маппинг индекса: у text должен быть analyzer russian, поля email нет
+GET http://localhost:9200/comments/_mapping
+
+### Поиск по слову с морфологией (если в комментарии было «комментарии», найдётся и по «комментарий»)
+GET http://localhost:9200/comments/_search?q=text:комментарий
+### Какие индексы есть
+GET http://localhost:9200/_cat/indices?v
