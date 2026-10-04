@@ -6,6 +6,7 @@ import {
   CaptchaResponse,
   CommentDto,
   PagedResult,
+  SearchHit,
   SortDir,
   SortField,
 } from './models';
@@ -37,7 +38,19 @@ export class CommentsApi {
       `/api/comments/${id}`,
     );
   }
+  search(
+    query: string,
+    page: number,
+  ): Observable<PagedResult<SearchHit>> {
+    const params = new HttpParams()
+      .set('q', query)
+      .set('page', page);
 
+    return this.http.get<PagedResult<SearchHit>>(
+      '/api/comments/search',
+      { params },
+    );
+  }
   getCaptcha(): Observable<CaptchaResponse> {
     return this.http.get<CaptchaResponse>(
       '/api/captcha',

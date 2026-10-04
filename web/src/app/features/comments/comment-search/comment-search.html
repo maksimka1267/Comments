@@ -1,0 +1,196 @@
+<form
+  class="search"
+  role="search"
+  (submit)="submit($event, box.value)">
+
+  <input
+    #box
+    type="search"
+    class="search-input"
+    maxlength="200"
+    placeholder="Поиск по комментариям"
+    aria-label="Поиск по комментариям" />
+
+  <button
+    type="submit"
+    class="search-button"
+    [disabled]="loading()">
+
+    Найти
+
+  </button>
+
+  @if (active()) {
+
+    <button
+      type="button"
+      class="search-reset"
+      (click)="clear(box)">
+
+      Сбросить
+
+    </button>
+
+  }
+
+</form>
+
+
+@if (active(); as query) {
+
+  <section
+    class="search-results"
+    aria-live="polite">
+
+    @if (error(); as message) {
+
+      <p
+        class="search-error"
+        role="alert">
+
+        {{ message }}
+
+      </p>
+
+    } @else if (!loading()) {
+
+      <h2 class="search-title">
+        Результаты по запросу «{{ query }}»: {{ totalCount() }}
+      </h2>
+
+    }
+
+
+    @for (
+      hit of hits();
+      track hit.id
+    ) {
+
+      <article class="search-hit">
+
+        <header class="search-hit-header">
+
+          <strong>
+            {{ hit.userName }}
+          </strong>
+
+          <time [attr.datetime]="hit.createdAt">
+            {{ hit.createdAt | date: 'dd.MM.yy в HH:mm' }}
+          </time>
+
+          @if (hit.parentId) {
+
+            <span class="search-reply-badge">
+              ответ
+            </span>
+
+          }
+
+        </header>
+
+        <!-- Plain text: shown with interpolation, never as HTML -->
+        <p class="search-snippet">
+          {{ hit.snippet }}
+        </p>
+
+        <button
+          type="button"
+          class="search-more"
+          [attr.aria-expanded]="expandedId() === hit.id"
+          (click)="toggle(hit.id)">
+
+          {{ expandedId() === hit.id ? 'Свернуть' : 'Показать полностью' }}
+
+        </button>
+
+        @if (expandedId() === hit.id) {
+
+          @if (expanded(); as full) {
+
+            <div
+              class="search-full"
+              [innerHTML]="full.text">
+            </div>
+
+          } @else if (expandLoading()) {
+
+            <span class="search-loading">
+              Загрузка…
+            </span>
+
+          }
+
+        }
+
+      </article>
+
+    } @empty {
+
+      @if (!loading() && !error()) {
+
+        <p class="search-empty">
+          Ничего не найдено.
+        </p>
+
+      }
+
+    }
+
+
+    @if (totalPages() > 1) {
+
+      <nav
+        class="search-pager"
+        aria-label="Страницы результатов">
+
+        <button
+          type="button"
+          class="search-page"
+          data-search-page="prev"
+          aria-label="Предыдущая страница"
+          [disabled]="page() === 1 || loading()"
+          (click)="goTo(page() - 1)">
+
+          ‹
+
+        </button>
+
+        @for (
+          p of pages();
+          track p
+        ) {
+
+          <button
+            type="button"
+            class="search-page"
+            [attr.data-search-page]="p"
+            [class.active]="p === page()"
+            [attr.aria-current]="p === page() ? 'page' : null"
+            [disabled]="loading()"
+            (click)="goTo(p)">
+
+            {{ p }}
+
+          </button>
+
+        }
+
+        <button
+          type="button"
+          class="search-page"
+          data-search-page="next"
+          aria-label="Следующая страница"
+          [disabled]="page() === totalPages() || loading()"
+          (click)="goTo(page() + 1)">
+
+          ›
+
+        </button>
+
+      </nav>
+
+    }
+
+  </section>
+
+}

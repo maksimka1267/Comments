@@ -32,6 +32,12 @@ export interface CaptchaResponse {
   id: string;
   image: string;
 }
-
+export interface SearchHit {
+  id: string;
+  parentId: string | null;
+  userName: string;
+  snippet: string;
+  createdAt: string;
+}
 export type SortField = 'date' | 'userName' | 'email';
 export type SortDir = 'asc' | 'desc';
