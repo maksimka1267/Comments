@@ -1,0 +1,122 @@
+@host = https://localhost:7186
+
+### Валидный комментарий
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "homePage": "https://example.com",
+  "text": "Привет <strong>мир</strong> <script>alert(1)</script>",
+  "parentId": null
+}
+
+### Незакрытый тег (ожидаем 400)
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "text": "<i>без закрытия",
+  "parentId": null
+}
+
+### Несуществующий родитель (ожидаем 404)
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "text": "ответ в никуда",
+  "parentId": "00000000-0000-0000-0000-000000000001"
+}
+### По умолчанию: новые сверху, страница 1
+GET {{host}}/api/comments
+
+### Сортировка по имени, по возрастанию, страница 2
+GET {{host}}/api/comments?sortBy=userName&sortDir=asc&page=2
+
+### Ошибка (ожидаем 400)
+GET {{host}}/api/comments?page=0
+
+### Ответ на комментарий
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Bob",
+  "email": "bob@example.com",
+  "text": "Согласен, <i>отличная мысль</i>",
+  "parentId": "068ad371-d55a-48ce-6141-08df1f346040"
+}
+
+### Комментарий со всей веткой
+GET {{host}}/api/comments/068ad371-d55a-48ce-6141-08df1f346040
+
+### Список: у заглавных комментариев заполнено поле replies
+GET {{host}}/api/comments
+### 1. Получить капчу
+GET {{host}}/api/captcha
+
+### 2. Создать комментарий (подставь id из шага 1 и текст с картинки)
+POST {{host}}/api/comments
+Content-Type: application/json
+
+{
+  "userName": "Anna123",
+  "email": "anna@example.com",
+  "text": "Комментарий с капчей",
+  "parentId": null,
+  "captchaId": "00b45f5c-4f94-4c29-ac0d-1d80300f79a8",
+  "captchaAnswer": "chunked"
+}
+### SignalR: negotiate (ожидаем 200 с connectionId и availableTransports)
+POST {{host}}/hubs/comments/negotiate?negotiateVersion=1
+
+### GraphQL: список заглавных комментариев
+POST {{host}}/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(sortBy: DATE, sortDir: DESC, page: 1) { page totalCount totalPages items { id userName replies { id userName } } } }" }
+### GraphQL: список заглавных комментариев
+POST {{host}}/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(page: 1) { page totalCount items { userName } } }" }
+### GraphQL через dev-прокси Angular (npm start должен быть запущен)
+POST http://localhost:4200/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(page: 1) { page totalCount items { userName } } }" }
+
+### GraphQL через nginx в Docker (docker compose up должен быть запущен)
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(page: 1) { page totalCount items { userName } } }" }
+### Elasticsearch жив
+GET http://localhost:9200/_cluster/health
+### Что лежит в индексе (после создания комментария пройдёт около секунды)
+GET http://localhost:9200/comments/_search
+
+### Маппинг индекса: у text должен быть analyzer russian, поля email нет
+GET http://localhost:9200/comments/_mapping
+
+### Поиск по слову с морфологией (если в комментарии было «комментарии», найдётся и по «комментарий»)
+GET http://localhost:9200/comments/_search?q=text:комментарий
+### Какие индексы есть
+GET http://localhost:9200/_cat/indices?v
+### Поиск по слову из комментария
+GET {{host}}/api/comments/search?q=привет&page=1
+
+### Поиск по имени автора
+GET {{host}}/api/comments/search?q=Anna123
+
+### Пустой запрос (ожидаем 400)
+GET {{host}}/api/comments/search?q=
+
+### Страница вне допустимого диапазона (ожидаем 400)
+GET {{host}}/api/comments/search?q=привет&page=0

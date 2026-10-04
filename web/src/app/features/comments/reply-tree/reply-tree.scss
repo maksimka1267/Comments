@@ -1,0 +1,272 @@
+:host {
+  display: block;
+}
+
+.reply {
+  margin-top: 28px;
+
+  margin-left: min(
+    calc(var(--depth) * 34px),
+    170px
+  );
+}
+
+.reply.flat {
+  margin-left: 0;
+}
+
+.reply-header {
+  min-height: 60px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 8px 12px 8px 10px;
+
+  background: #f5f6f8;
+}
+
+.reply-author {
+  display: flex;
+  align-items: center;
+
+  min-width: 0;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+
+  flex: 0 0 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 12px;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+  border: 3px solid #e9edf2;
+
+  font-size: 25px;
+  line-height: 1;
+
+  overflow: hidden;
+}
+
+.author-name {
+  margin-right: 9px;
+
+  color: #10203b;
+
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+time {
+  color: #34445e;
+
+  font-size: 14px;
+  line-height: 20px;
+
+  white-space: nowrap;
+}
+
+.reply-actions {
+  display: flex;
+  align-items: center;
+
+  margin-left: 16px;
+
+  gap: 5px;
+}
+
+.reply-actions button {
+  width: 24px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: #789bd5;
+
+  cursor: pointer;
+
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.reply-actions button:hover {
+  color: #4f79bd;
+  transform: translateY(-1px);
+}
+
+.reply-actions svg {
+  width: 17px;
+  height: 17px;
+
+  fill: none;
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vote-controls {
+  display: flex;
+  align-items: center;
+
+  margin-left: auto;
+
+  color: #9ca7b7;
+}
+
+.vote-controls button {
+  width: 22px;
+  height: 28px;
+
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  color: #9ca7b7;
+
+  font-size: 19px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.vote-controls button:hover {
+  color: #6389c8;
+}
+
+.vote-controls span {
+  min-width: 22px;
+
+  text-align: center;
+
+  color: #637086;
+
+  font-size: 13px;
+}
+
+.reply-body {
+  padding: 15px 0 0;
+}
+
+.reply-text {
+  color: #263754;
+
+  font-size: 16px;
+  line-height: 1.75;
+
+  letter-spacing: 0.01em;
+
+  overflow-wrap: anywhere;
+}
+
+.reply-text p {
+  margin: 0 0 17px;
+}
+
+.reply-text p:last-child {
+  margin-bottom: 0;
+}
+
+.quote {
+  margin: 0 0 14px;
+  padding: 2px 0 2px 9px;
+
+  border-left: 2px solid #a5c2ec;
+
+  color: #34445f;
+
+  font-size: 15px;
+  line-height: 1.6;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 700px) {
+  .reply {
+    margin-top: 20px;
+
+    margin-left: min(
+      calc(var(--depth) * 18px),
+      90px
+    );
+  }
+
+  .reply-header {
+    min-height: 54px;
+
+    padding: 6px 8px;
+  }
+
+  .avatar {
+    width: 38px;
+    height: 38px;
+
+    flex-basis: 38px;
+
+    margin-right: 9px;
+
+    font-size: 21px;
+  }
+
+  .author-name {
+    font-size: 15px;
+    margin-right: 6px;
+  }
+
+  time {
+    font-size: 12px;
+  }
+
+  .reply-actions {
+    margin-left: 8px;
+    gap: 1px;
+  }
+
+  .reply-actions button {
+    width: 22px;
+  }
+
+  .reply-actions svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .vote-controls {
+    display: none;
+  }
+
+  .reply-body {
+    padding-top: 12px;
+  }
+
+  .reply-text {
+    font-size: 15px;
+    line-height: 1.65;
+  }
+}
