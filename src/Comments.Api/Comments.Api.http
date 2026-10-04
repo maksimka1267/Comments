@@ -97,3 +97,5 @@ POST http://localhost:8080/graphql
 Content-Type: application/json
 
 { "query": "{ comments(page: 1) { page totalCount items { userName } } }" }
+### Elasticsearch жив
+GET http://localhost:9200/_cluster/health

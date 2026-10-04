@@ -8,6 +8,8 @@ using Comments.Infrastructure.Messaging;
 using Comments.Infrastructure.Persistence;
 using Comments.Infrastructure.Text;
 
+using Elastic.Clients.Elasticsearch;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,9 +20,11 @@ namespace Comments.Infrastructure;
 public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        string connectionString,
-        string redisConnectionString, string rabbitMqConnectionString)
+    this IServiceCollection services,
+    string connectionString,
+    string redisConnectionString,
+    string rabbitMqConnectionString,
+    string elasticsearchConnectionString)
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(
@@ -56,7 +60,13 @@ public static class DependencyInjection
 
             return ConnectionMultiplexer.Connect(options);
         });
+        services.AddSingleton(_ =>
+        {
+            var settings = new ElasticsearchClientSettings(new Uri(elasticsearchConnectionString))
+                .RequestTimeout(TimeSpan.FromSeconds(5));
 
+            return new ElasticsearchClient(settings);
+        });
         return services;
     }
 }

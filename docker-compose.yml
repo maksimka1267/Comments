@@ -26,6 +26,7 @@
       interval: 5s
       timeout: 3s
       retries: 10
+
   rabbitmq:
     image: rabbitmq:4-management
     environment:
@@ -40,6 +41,26 @@
       timeout: 10s
       retries: 10
       start_period: 30s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.3.0
+    environment:
+      discovery.type: single-node
+      # только для разработки и демо: без аутентификации и TLS, наружу порт на сервере не открывать
+      xpack.security.enabled: "false"
+      # ограничиваем память JVM, иначе Elasticsearch займёт половину оперативной памяти
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"   # для разработки с локальным API, на сервере можно убрать
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
   api:
     build:
       context: .
@@ -50,6 +71,7 @@
       ConnectionStrings__Default: "Server=mssql;Database=Comments;User Id=sa;Password=${MSSQL_SA_PASSWORD:-Comments_Dev123!};TrustServerCertificate=True"
       ConnectionStrings__RabbitMq: "amqp://comments:${RABBITMQ_PASSWORD:-comments_dev}@rabbitmq:5672/"
       ConnectionStrings__Redis: "redis:6379"
+      ConnectionStrings__Elasticsearch: "http://elasticsearch:9200"
       FileStorage__RootPath: /app/uploads
     volumes:
       - uploads:/app/uploads
@@ -60,6 +82,9 @@
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+
   web:
     build: ./web
     ports:
@@ -70,3 +95,4 @@
 volumes:
   mssqldata:
   uploads:
+  esdata:

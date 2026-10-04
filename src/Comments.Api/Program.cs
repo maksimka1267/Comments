@@ -26,7 +26,8 @@ builder.Services.AddScoped<ICommentQueryService, CachedCommentQueryService>();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("Default")!,
     builder.Configuration.GetConnectionString("Redis")!,
-    builder.Configuration.GetConnectionString("RabbitMq")!);
+    builder.Configuration.GetConnectionString("RabbitMq")!,
+    builder.Configuration.GetConnectionString("Elasticsearch")!);
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCommentRequestValidator>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
