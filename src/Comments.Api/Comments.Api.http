@@ -81,3 +81,19 @@ POST {{host}}/graphql
 Content-Type: application/json
 
 { "query": "{ comments(sortBy: DATE, sortDir: DESC, page: 1) { page totalCount totalPages items { id userName replies { id userName } } } }" }
+### GraphQL: список заглавных комментариев
+POST {{host}}/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(page: 1) { page totalCount items { userName } } }" }
+### GraphQL через dev-прокси Angular (npm start должен быть запущен)
+POST http://localhost:4200/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(page: 1) { page totalCount items { userName } } }" }
+
+### GraphQL через nginx в Docker (docker compose up должен быть запущен)
+POST http://localhost:8080/graphql
+Content-Type: application/json
+
+{ "query": "{ comments(page: 1) { page totalCount items { userName } } }" }

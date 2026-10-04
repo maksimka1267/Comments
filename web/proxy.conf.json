@@ -3,10 +3,14 @@
     "target": "https://localhost:7186",
     "secure": false
   },
-"/hubs": {
-  "target": "https://localhost:7186",
-  "secure": false,
-  "ws": true,
-  "changeOrigin": true
-}
+  "/hubs": {
+    "target": "https://localhost:7186",
+    "secure": false,
+    "ws": true,
+    "changeOrigin": true
+  },
+  "/graphql": {
+    "target": "https://localhost:7186",
+    "secure": false
+  }
 }
