@@ -54,6 +54,8 @@ public static class DependencyInjection
         services.AddHostedService<CommentRealtimeConsumer>();
         services.AddSingleton<ICommentSearchIndex, ElasticCommentSearchIndex>();
         services.AddHostedService<CommentSearchIndexingConsumer>();
+        services.AddScoped<CommentSearchReindexer>();
+        services.AddHostedService<CommentSearchReindexService>();
 
         services.AddSingleton<IConnectionMultiplexer>(_ =>
         {

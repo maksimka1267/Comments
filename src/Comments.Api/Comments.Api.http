@@ -109,3 +109,14 @@ GET http://localhost:9200/comments/_mapping
 GET http://localhost:9200/comments/_search?q=text:комментарий
 ### Какие индексы есть
 GET http://localhost:9200/_cat/indices?v
+### Поиск по слову из комментария
+GET {{host}}/api/comments/search?q=привет&page=1
+
+### Поиск по имени автора
+GET {{host}}/api/comments/search?q=Anna123
+
+### Пустой запрос (ожидаем 400)
+GET {{host}}/api/comments/search?q=
+
+### Страница вне допустимого диапазона (ожидаем 400)
+GET {{host}}/api/comments/search?q=привет&page=0
